@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>SAJV-QoS | Iniciar sesión</title>
+
+    <link rel="stylesheet"
+          th:href="@{/vendor/Bootstrap/css/bootstrap.min.css}">
+
+    <link rel="stylesheet"
+          th:href="@{/vendor/fontawesome/css/all.min.css}">
+
+    <link rel="stylesheet"
+          th:href="@{/css/login.css}">
+</head>
+
+<body>
+
+<div class="login-container">
+
+    <!-- PANEL IZQUIERDO -->
+    <section class="login-brand">
+
+        <div class="brand-content">
+
+            <h1>SAJV-QoS</h1>
+
+            <h2>
+                Sistema de Administración
+                de Audiencias Virtuales
+            </h2>
+
+            <div class="brand-line"></div>
+
+            <p>
+                Gestión de audiencias virtuales y calidad
+                de servicio de red
+            </p>
+
+        </div>
+
+        <div class="brand-features">
+
+            <div class="feature">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Programación<br>de audiencias</span>
+            </div>
+
+            <div class="feature">
+                <i class="fa-solid fa-display"></i>
+                <span>Salas virtuales<br>y equipos</span>
+            </div>
+
+            <div class="feature">
+                <i class="fa-solid fa-diagram-project"></i>
+                <span>Monitoreo de QoS<br>y reportes</span>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- PANEL DERECHO -->
+    <section class="login-form-container">
+
+        <div class="login-card">
+
+            <div class="login-logo">
+
+                <i class="fa-solid fa-scale-balanced"></i>
+
+                <h2>SAJV-QoS</h2>
+
+                <h3>Iniciar sesión</h3>
+
+                <p>Ingrese sus credenciales</p>
+
+            </div>
+
+            <form th:action="@{/login}" method="post">
+
+                <div th:if="${param.error}"
+                     class="alert alert-danger">
+                    Usuario o contraseña incorrectos.
+                </div>
+
+                <div th:if="${param.logout}"
+                     class="alert alert-success">
+                    Sesión cerrada correctamente.
+                </div>
+
+                <div class="input-group-custom">
+
+                    <i class="fa-regular fa-user"></i>
+
+                    <input type="text"
+                           name="username"
+                           placeholder="Usuario"
+                           autocomplete="username"
+                           required>
+
+                </div>
+
+                <div class="input-group-custom">
+
+                    <i class="fa-solid fa-lock"></i>
+
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           placeholder="Contraseña"
+                           autocomplete="current-password"
+                           required>
+
+                    <button type="button"
+                            id="togglePassword"
+                            aria-label="Mostrar contraseña">
+                        <i class="fa-regular fa-eye-slash"></i>
+                    </button>
+
+                </div>
+
+                <button type="submit" class="btn-login">
+
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+
+                    Ingresar
+
+                </button>
+
+            </form>
+
+            <div class="login-footer">
+
+                <strong>SAJV-QoS</strong>
+
+                <p>Poder Judicial del Perú</p>
+
+                <small>
+                    Gestión de audiencias virtuales
+                </small>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+<script th:src="@{/js/login.js}"></script>
+
+</body>
+</html>

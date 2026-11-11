@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/main :: layout('Control QoS', ~{::contenido})}">
+<th:block th:fragment="contenido">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <div>
+            <h4 class="mb-1">Control manual de políticas QoS</h4>
+            <p class="text-muted mb-0">Activación y desactivación bajo demanda, con trazabilidad de la intervención.</p>
+        </div>
+        <span class="badge text-bg-warning">INTERVENCIÓN MANUAL</span>
+    </div>
+
+    <div class="alert alert-info">
+        <i class="fa-solid fa-circle-info me-2"></i>
+        Las operaciones manuales utilizan los mismos endpoints de activación y desactivación que la automatización.
+        La diferencia es que <code>audienciaId</code> se envía como <code>null</code>, y se registra el motivo
+        y el usuario que realiza la intervención. La duración manual configurada es de
+        <strong th:text="${duracionManualMinutos} + ' minutos'">10 minutos</strong>.
+    </div>
+
+    <div class="alert alert-warning">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>
+        Antes de activar o desactivar, verifica la sede, el equipo y la política seleccionados.
+        Las operaciones se ejecutan sobre el router configurado y pueden modificar su configuración cuando QoS esté en modo real.
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-sliders me-2"></i>Políticas disponibles por equipo</h3>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 mb-3">
+                <div class="col-lg-8">
+                    <label for="motivoManual" class="form-label">Motivo de la intervención manual</label>
+                    <input id="motivoManual" class="form-control" maxlength="500"
+                           placeholder="Ej. Prueba de intervención manual QoS por 10 minutos">
+                    <div class="form-text">Obligatorio. Máximo 500 caracteres. Se guardará en el historial de operaciones.</div>
+                </div>
+                <div class="col-lg-4 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-primary w-100" id="btnRecargar">
+                        <i class="fa-solid fa-rotate me-1"></i>Actualizar estados
+                    </button>
+                </div>
+            </div>
+
+            <div id="mensajeOperacion" class="alert d-none" role="alert"></div>
+
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Sede</th>
+                        <th>Equipo</th>
+                        <th>Política QoS</th>
+                        <th>Policy-map</th>
+                        <th>Estado conocido</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="fila : ${filasQos}">
+                        <td th:text="${fila.sede}">Sede</td>
+                        <td class="fw-semibold" th:text="${fila.equipo}">Router</td>
+                        <td th:text="${fila.politica}">Política</td>
+                        <td><code th:text="${fila.policyMap}">POLICY</code></td>
+                        <td>
+                            <span th:if="${fila.activa}" class="badge text-bg-success estado-qos">Activa</span>
+                            <span th:unless="${fila.activa}" class="badge text-bg-secondary estado-qos">Inactiva</span>
+                        </td>
+                        <td class="text-center text-nowrap">
+                            <button type="button" class="btn btn-sm btn-success btn-qos"
+                                    th:attr="data-equipo=${fila.equipoId},data-politica=${fila.politicaId},data-accion='activar'"
+                                    th:disabled="${fila.activa}">
+                                <i class="fa-solid fa-play me-1"></i>Activar
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger btn-qos"
+                                    th:attr="data-equipo=${fila.equipoId},data-politica=${fila.politicaId},data-accion='desactivar'"
+                                    th:disabled="${!fila.activa}">
+                                <i class="fa-solid fa-stop me-1"></i>Desactivar
+                            </button>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(filasQos)}">
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No hay equipos y políticas QoS activos para controlar.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer small text-muted">
+            <i class="fa-solid fa-shield-halved me-1"></i>
+            Solo perfiles Administrador y Operador pueden ejecutar intervenciones manuales.
+        </div>
+    </div>
+
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+
+    <script>
+    (() => {
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+        const mensaje = document.getElementById('mensajeOperacion');
+        const motivo = document.getElementById('motivoManual');
+
+        function mostrarMensaje(tipo, texto) {
+            mensaje.className = `alert alert-${tipo}`;
+            mensaje.textContent = texto;
+            mensaje.classList.remove('d-none');
+        }
+
+        document.querySelectorAll('.btn-qos').forEach((boton) => {
+            boton.addEventListener('click', async () => {
+                const motivoTexto = motivo.value.trim();
+                if (!motivoTexto) {
+                    mostrarMensaje('warning', 'Debes indicar el motivo de la intervención manual.');
+                    motivo.focus();
+                    return;
+                }
+
+                const accion = boton.dataset.accion;
+                const confirmacion = accion === 'activar'
+                    ? '¿Confirmas la activación manual de esta política QoS?'
+                    : '¿Confirmas la desactivación manual de esta política QoS?';
+                if (!window.confirm(confirmacion)) return;
+
+                const equipoId = Number(boton.dataset.equipo);
+                const politicaId = Number(boton.dataset.politica);
+                const botonesFila = boton.closest('tr').querySelectorAll('.btn-qos');
+                botonesFila.forEach(b => b.disabled = true);
+                boton.dataset.procesando = 'true';
+                boton.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Procesando';
+
+                try {
+                    const response = await fetch(`/api/qos/operaciones/${accion}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            ...(csrfToken && csrfHeader ? {[csrfHeader]: csrfToken} : {})
+                        },
+                        body: JSON.stringify({
+                            audienciaId: null,
+                            equipoId,
+                            politicaId,
+                            motivo: motivoTexto
+                        })
+                    });
+
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        throw new Error(data.message || data.detail || `Error HTTP ${response.status}`);
+                    }
+
+                    const exitoso = Number(data.resultado) === 1;
+                    mostrarMensaje(exitoso ? 'success' : 'danger',
+                        data.mensaje || (exitoso ? 'Operación registrada.' : 'La operación no se completó.'));
+                    if (exitoso) {
+                        window.setTimeout(() => window.location.reload(), 900);
+                    } else {
+                        botonesFila.forEach(b => b.disabled = false);
+                    }
+                } catch (error) {
+                    mostrarMensaje('danger', error.message || 'No fue posible ejecutar la operación QoS.');
+                    botonesFila.forEach(b => b.disabled = false);
+                } finally {
+                    boton.innerHTML = accion === 'activar'
+                        ? '<i class="fa-solid fa-play me-1"></i>Activar'
+                        : '<i class="fa-solid fa-stop me-1"></i>Desactivar';
+                }
+            });
+        });
+
+        document.getElementById('btnRecargar')?.addEventListener('click', () => window.location.reload());
+    })();
+    </script>
+</th:block>
+</html>

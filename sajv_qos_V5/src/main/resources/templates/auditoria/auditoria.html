@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/main :: layout('Auditoría del sistema', ~{::contenido})}">
+<body>
+<div th:fragment="contenido">
+
+    <div class="mb-3">
+        <p class="text-muted mb-0">Consulta el historial de operaciones realizadas en SAJV-QoS.</p>
+    </div>
+
+    <div th:if="${error}" class="alert alert-warning" role="alert" th:text="${error}"></div>
+
+    <div class="card card-primary card-outline mb-3">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-filter me-2"></i>Filtros de búsqueda</h3>
+        </div>
+        <div class="card-body">
+            <form method="get" th:action="@{/auditoria}" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="usuario" class="form-label">Usuario</label>
+                    <input id="usuario" name="usuario" type="text" class="form-control"
+                           maxlength="50" placeholder="Nombre de usuario" th:value="${usuarioFiltro}">
+                </div>
+                <div class="col-md-2">
+                    <label for="modulo" class="form-label">Módulo</label>
+                    <select id="modulo" name="modulo" class="form-select">
+                        <option value="">Todos</option>
+                        <option th:each="m : ${modulos}" th:value="${m}" th:text="${m}"
+                                th:selected="${m == moduloFiltro}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="accion" class="form-label">Acción</label>
+                    <select id="accion" name="accion" class="form-select">
+                        <option value="">Todas</option>
+                        <option value="CREAR" th:selected="${accionFiltro == 'CREAR'}">Crear</option>
+                        <option value="ACTUALIZAR" th:selected="${accionFiltro == 'ACTUALIZAR'}">Actualizar</option>
+                        <option value="ACTIVAR" th:selected="${accionFiltro == 'ACTIVAR'}">Activar</option>
+                        <option value="DESACTIVAR" th:selected="${accionFiltro == 'DESACTIVAR'}">Desactivar</option>
+                        <option value="RESTABLECER_CONTRASENA" th:selected="${accionFiltro == 'RESTABLECER_CONTRASENA'}">Restablecer contraseña</option>
+                        <option value="CAMBIAR_CONTRASENA" th:selected="${accionFiltro == 'CAMBIAR_CONTRASENA'}">Cambiar contraseña</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="desde" class="form-label">Desde</label>
+                    <input id="desde" name="desde" type="date" class="form-control" th:value="${desde}">
+                </div>
+                <div class="col-md-2">
+                    <label for="hasta" class="form-label">Hasta</label>
+                    <input id="hasta" name="hasta" type="date" class="form-control" th:value="${hasta}">
+                </div>
+                <div class="col-md-1 d-grid">
+                    <button class="btn btn-primary" type="submit" title="Buscar">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+                <div class="col-12">
+                    <a th:href="@{/auditoria}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fa-solid fa-eraser me-1"></i>Limpiar filtros
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card card-primary card-outline">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left me-2"></i>Historial de actividad</h3>
+            <div class="card-tools">
+                <span class="badge text-bg-secondary" th:text="|${registros.totalElements} registros|">0 registros</span>
+            </div>
+        </div>
+        <div class="card-body table-responsive">
+            <table class="table table-bordered table-striped table-hover align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha y hora</th>
+                    <th>Usuario</th>
+                    <th>Módulo</th>
+                    <th>Acción</th>
+                    <th>Descripción</th>
+                    <th>Dirección IP</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${registros.content}">
+                    <td th:text="${r.id}"></td>
+                    <td class="text-nowrap" th:text="${#temporals.format(r.fecha, 'dd/MM/yyyy HH:mm:ss')}"></td>
+                    <td th:text="${r.usuario}"></td>
+                    <td><span class="badge text-bg-info" th:text="${r.modulo}"></span></td>
+                    <td><span class="badge text-bg-secondary" th:text="${r.accion}"></span></td>
+                    <td th:text="${r.descripcion}"></td>
+                    <td th:text="${r.ip != null ? r.ip : 'No disponible'}"></td>
+                </tr>
+                <tr th:if="${registros.empty}">
+                    <td colspan="7" class="text-center text-muted py-4">
+                        No se encontraron registros de auditoría para los filtros seleccionados.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-2"
+             th:if="${registros.totalPages > 0}">
+            <small class="text-muted"
+                   th:text="|Página ${registros.number + 1} de ${registros.totalPages} · ${registros.totalElements} registros|"></small>
+            <nav aria-label="Paginación de auditoría">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" th:classappend="${registros.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/auditoria(pagina=${registros.number - 1}, usuario=${usuarioFiltro}, modulo=${moduloFiltro}, accion=${accionFiltro}, desde=${desde}, hasta=${hasta})}">Anterior</a>
+                    </li>
+                    <li class="page-item" th:each="n : ${#numbers.sequence(0, registros.totalPages - 1)}"
+                        th:classappend="${n == registros.number} ? 'active'">
+                        <a class="page-link"
+                           th:href="@{/auditoria(pagina=${n}, usuario=${usuarioFiltro}, modulo=${moduloFiltro}, accion=${accionFiltro}, desde=${desde}, hasta=${hasta})}"
+                           th:text="${n + 1}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${registros.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/auditoria(pagina=${registros.number + 1}, usuario=${usuarioFiltro}, modulo=${moduloFiltro}, accion=${accionFiltro}, desde=${desde}, hasta=${hasta})}">Siguiente</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+</body>
+</html>

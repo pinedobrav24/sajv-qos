@@ -1,0 +1,31 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(titulo)">
+
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title th:text="${titulo} + ' | SAJV-QoS'">
+        SAJV-QoS
+    </title>
+
+    <!-- Bootstrap 5 -->
+    <link rel="stylesheet"
+          th:href="@{/vendor/Bootstrap/css/bootstrap.min.css}">
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet"
+          th:href="@{/vendor/fontawesome/css/all.min.css}">
+
+    <!-- AdminLTE 4 -->
+    <link rel="stylesheet"
+          th:href="@{/AdminLTE/dist/css/adminlte.min.css}">
+
+    <!-- DataTables 3.1.4 -->
+    <link rel="stylesheet"
+          th:href="@{/vendor/Datatables/css/datatables.min.css}">
+
+</head>
+</html>

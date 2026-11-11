@@ -1,0 +1,353 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/main :: layout('Gestión de Salas', ~{::contenido})}">
+
+<body>
+
+<div th:fragment="contenido">
+
+    <!-- Mensajes -->
+    <div th:if="${success}"
+         class="alert alert-success alert-dismissible fade show">
+        <i class="fa-solid fa-circle-check me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close"
+                data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${error}"
+         class="alert alert-danger alert-dismissible fade show">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close"
+                data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Tarjeta principal -->
+    <div class="card card-primary card-outline">
+
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h3 class="card-title mb-0">
+                    <i class="fa-solid fa-building me-2"></i>
+                    Listado de Salas
+                </h3>
+
+                <button type="button"
+                        class="btn btn-light btn-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalSala"
+                        onclick="prepararRegistro()">
+                    <i class="fa-solid fa-plus me-1"></i>
+                    Nueva Sala
+                </button>
+
+            </div>
+        </div>
+
+        <div class="card-body">
+
+            <p class="text-muted mb-3">
+                Administración de Salas Judiciales del sistema SAJV-QoS.
+            </p>
+
+            <div class="table-responsive">
+
+                <table id="tablaSalas"
+                       class="table table-bordered table-striped table-hover align-middle w-100">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Descripción</th>
+                            <th>Sede</th>
+                            <th>Estado</th>
+                            <th class="text-center">Operaciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr th:each="sala : ${salas}">
+
+                            <td th:text="${sala.id}"></td>
+
+                            <td th:text="${sala.descripcion}"></td>
+
+                            <td th:text="${sala.sede.descripcion}"></td>
+
+                            <td>
+                                <span th:if="${sala.estado == 1}"
+                                      class="badge text-bg-success">
+                                    Activo
+                                </span>
+
+                                <span th:if="${sala.estado == 0}"
+                                      class="badge text-bg-danger">
+                                    Inactivo
+                                </span>
+                            </td>
+
+                            <td class="text-center text-nowrap">
+
+                                <!-- Editar -->
+                                <button type="button"
+                                        class="btn btn-warning btn-sm"
+                                        title="Editar"
+                                        th:if="${sala.estado == 1}"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalSala"
+                                        th:attr="data-id=${sala.id},
+                                                 data-descripcion=${sala.descripcion},
+                                                 data-sede=${sala.sede.id}"
+                                        onclick="prepararEdicion(this)">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+
+                                <!-- Desactivar -->
+                                <form th:if="${sala.estado == 1}"
+                                      th:action="@{/salas/desactivar/{id}(id=${sala.id})}"
+                                      method="post"
+                                      class="d-inline"
+                                      onsubmit="return confirm('¿Desea desactivar esta sala?')">
+
+                                    <input type="hidden"
+                                           th:if="${_csrf != null}"
+                                           th:name="${_csrf.parameterName}"
+                                           th:value="${_csrf.token}"/>
+
+                                    <button type="submit"
+                                            class="btn btn-danger btn-sm"
+                                            title="Desactivar">
+                                        <i class="fa-solid fa-ban"></i>
+                                    </button>
+
+                                </form>
+
+                                <!-- Activar -->
+                                <form th:if="${sala.estado == 0}"
+                                      th:action="@{/salas/activar/{id}(id=${sala.id})}"
+                                      method="post"
+                                      class="d-inline"
+                                      onsubmit="return confirm('¿Desea activar esta sala?')">
+
+                                    <input type="hidden"
+                                           th:if="${_csrf != null}"
+                                           th:name="${_csrf.parameterName}"
+                                           th:value="${_csrf.token}"/>
+
+                                    <button type="submit"
+                                            class="btn btn-success btn-sm"
+                                            title="Activar">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <div class="card-footer">
+            <small class="text-muted">
+                <i class="fa-solid fa-circle-info me-1"></i>
+                Administración de salas judiciales.
+            </small>
+        </div>
+
+    </div>
+
+    <!-- Modal Registro / Edición -->
+    <div class="modal fade" id="modalSala"
+         tabindex="-1" aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered">
+
+            <div class="modal-content">
+
+                <form id="formSala"
+                      th:action="@{/salas/guardar}"
+                      th:object="${sala}"
+                      method="post">
+
+                    <div class="modal-header bg-primary text-white">
+
+                        <h5 class="modal-title" id="tituloModalSala">
+                            <i class="fa-solid fa-building me-2"></i>
+                            Nueva Sala
+                        </h5>
+
+                        <button type="button"
+                                class="btn-close btn-close-white"
+                                data-bs-dismiss="modal"></button>
+
+                    </div>
+
+                    <div class="modal-body">
+
+                        <!-- Descripción -->
+                        <div class="mb-3">
+
+                            <label for="descripcion"
+                                   class="form-label">
+                                Descripción
+                            </label>
+
+                            <input type="text"
+                                   id="descripcion"
+                                   th:field="*{descripcion}"
+                                   class="form-control"
+                                   maxlength="100"
+                                   placeholder="Ingrese la descripción de la sala"
+                                   required>
+
+                            <div class="text-danger small"
+                                 th:if="${#fields.hasErrors('descripcion')}"
+                                 th:errors="*{descripcion}">
+                            </div>
+
+                        </div>
+
+                        <!-- Sede -->
+                        <div class="mb-3">
+
+                            <label for="sede"
+                                   class="form-label">
+                                Sede
+                            </label>
+
+                            <select id="sede"
+                                    th:field="*{sede.id}"
+                                    class="form-select"
+                                    required>
+
+                                <option value="">
+                                    Seleccione una sede
+                                </option>
+
+                                <option th:each="sede : ${sedes}"
+                                        th:value="${sede.id}"
+                                        th:text="${sede.descripcion}">
+                                </option>
+
+                            </select>
+
+                            <div class="text-danger small"
+                                 th:if="${#fields.hasErrors('sede')}"
+                                 th:errors="*{sede}">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <button type="button"
+                                class="btn btn-secondary"
+                                data-bs-dismiss="modal">
+                            <i class="fa-solid fa-xmark me-1"></i>
+                            Cancelar
+                        </button>
+
+                        <button type="submit"
+                                class="btn btn-primary">
+                            <i class="fa-solid fa-floppy-disk me-1"></i>
+                            Guardar
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- JavaScript -->
+    <script th:inline="javascript">
+
+        function prepararRegistro() {
+
+            const form = document.getElementById('formSala');
+
+            form.action = /*[[@{/salas/guardar}]]*/ '/salas/guardar';
+
+            document.getElementById('tituloModalSala').innerHTML =
+                '<i class="fa-solid fa-plus me-2"></i>Nueva Sala';
+
+            document.getElementById('descripcion').value = '';
+            document.getElementById('sede').value = '';
+
+        }
+
+        function prepararEdicion(boton) {
+
+            const id = boton.dataset.id;
+            const descripcion = boton.dataset.descripcion;
+            const sede = boton.dataset.sede;
+
+            const form = document.getElementById('formSala');
+
+            const urlEditar = /*[[@{/salas/editar/}]]*/ '/salas/editar/';
+
+            form.action = urlEditar + id;
+
+            document.getElementById('tituloModalSala').innerHTML =
+                '<i class="fa-solid fa-pen-to-square me-2"></i>Editar Sala';
+
+            document.getElementById('descripcion').value = descripcion;
+            document.getElementById('sede').value = sede;
+
+        }
+
+        // Abrir modal automáticamente cuando existen errores de validación
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const abrirModal = /*[[${abrirModal}]]*/ null;
+
+            if (abrirModal === 'registro' || abrirModal === 'edicion') {
+
+                const modal = new bootstrap.Modal(
+                    document.getElementById('modalSala')
+                );
+
+                modal.show();
+
+                if (abrirModal === 'registro') {
+                    document.getElementById('tituloModalSala').innerHTML =
+                        '<i class="fa-solid fa-plus me-2"></i>Nueva Sala';
+                } else {
+                    document.getElementById('tituloModalSala').innerHTML =
+                        '<i class="fa-solid fa-pen-to-square me-2"></i>Editar Sala';
+
+                    const idEdicion = /*[[${idEdicion}]]*/ null;
+
+                    const urlEditar = /*[[@{/salas/editar/}]]*/ '/salas/editar/';
+
+                    document.getElementById('formSala').action =
+                        urlEditar + idEdicion;
+                }
+            }
+
+        });
+
+    </script>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+
+# Spring Boot / Java
+**/target/
+**/*.class
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/.venv/
+**/venv/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Logs y temporales
+*.log
+*.tmp
+
+# Credenciales
+.env
+.env.*
+!*.env.example
+
+# Configuraciones locales sensibles
+**/application-local.properties

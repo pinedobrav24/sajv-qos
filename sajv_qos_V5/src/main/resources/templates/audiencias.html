@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/main :: layout('Programación de Audiencias', ~{::contenido})}">
+
+<body>
+
+<div th:fragment="contenido">
+
+    <style>
+        /* ==========================================
+           CALENDARIO
+        ========================================== */
+
+        #calendarioAudiencias {
+            min-height: 620px;
+            font-size: 0.9rem;
+        }
+
+        #calendarioAudiencias a {
+            text-decoration: none !important;
+            color: inherit;
+        }
+
+        #calendarioAudiencias .fc-col-header-cell-cushion {
+            color: #495057;
+            font-weight: 600;
+            padding: 10px 4px;
+        }
+
+        #calendarioAudiencias .fc-daygrid-day-number {
+            color: #495057;
+            padding: 8px;
+        }
+
+        #calendarioAudiencias .fc-day-today {
+            background-color: #fff8db !important;
+        }
+
+        #calendarioAudiencias .fc-button-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        #calendarioAudiencias .fc-button-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+
+        #calendarioAudiencias .fc-event {
+            border: none;
+            padding: 3px 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #calendarioAudiencias .fc-toolbar-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        /* ==========================================
+           INDICADORES
+        ========================================== */
+
+        .audiencia-indicador {
+            min-height: 120px;
+        }
+
+        .audiencia-indicador .inner h3 {
+            font-size: 2rem;
+        }
+
+        /* ==========================================
+           LEYENDA
+        ========================================== */
+
+        .leyenda-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: 13px;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+        }
+
+        .leyenda-color {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* ==========================================
+           PANEL DE DETALLE
+        ========================================== */
+
+        .detalle-label {
+            font-size: 0.82rem;
+            color: #6c757d;
+            margin-bottom: 4px;
+        }
+
+        .detalle-valor {
+            font-weight: 600;
+            margin-bottom: 16px;
+            overflow-wrap: anywhere;
+        }
+
+        .indicador-situacion {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        #detalleVacio {
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            #calendarioAudiencias {
+                min-height: 500px;
+            }
+
+            #calendarioAudiencias .fc-toolbar {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+
+
+    <!-- ==============================================
+         ENCABEZADO
+    =============================================== -->
+
+    <div class="container-fluid">
+
+        <!-- MENSAJES DE RESULTADO DEL REGISTRO -->
+        <div th:if="${mensajeExito}"
+             class="alert alert-success alert-dismissible fade show"
+             role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i>
+            <span th:text="${mensajeExito}"></span>
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Cerrar"></button>
+        </div>
+
+        <div th:if="${mensajeError}"
+             class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+            <span th:text="${mensajeError}"></span>
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Cerrar"></button>
+        </div>
+
+        <div class="row mb-3 align-items-center">
+
+            <div class="col-md-8">
+
+                <p class="text-muted mb-0">
+                    Administración y seguimiento de audiencias judiciales.
+                </p>
+
+            </div>
+
+            <div class="col-md-4 text-md-end">
+
+                <button type="button"
+                        class="btn btn-primary"
+                        th:if="${esAdministrador or esOperador}"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalAudiencia">
+                    <i class="fa-solid fa-plus me-1"></i>
+                    Nueva audiencia
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==========================================
+             INDICADORES
+        =========================================== -->
+
+        <div class="row">
+
+                    <!-- PROGRAMADAS -->
+            <div class="col-xl-3 col-md-6 col-6">
+                <div class="small-box text-bg-primary audiencia-indicador">
+                    <div class="inner">
+                        <h3 id="totalAudiencias">0</h3>
+                        <p>Programadas</p>
+                    </div>
+                    <i class="fa-solid fa-calendar-check small-box-icon"
+                    aria-hidden="true"></i>
+                </div>
+            </div>
+
+            <!-- PARA HOY -->
+            <div class="col-xl-3 col-md-6 col-6">
+                <div class="small-box text-bg-danger audiencia-indicador">
+                    <div class="inner">
+                        <h3 id="totalHoy">0</h3>
+                        <p>Para hoy</p>
+                    </div>
+                    <i class="fa-solid fa-clock small-box-icon"
+                    aria-hidden="true"></i>
+                </div>
+            </div>
+
+            <!-- EN CURSO -->
+            <div class="col-xl-3 col-md-6 col-6">
+                <div class="small-box text-bg-success audiencia-indicador">
+                    <div class="inner">
+                        <h3 id="totalCurso">0</h3>
+                        <p>En curso</p>
+                    </div>
+                    <i class="fa-solid fa-video small-box-icon"
+                    aria-hidden="true"></i>
+                </div>
+            </div>
+
+            <!-- FINALIZADAS -->
+            <div class="col-xl-3 col-md-6 col-6">
+                <div class="small-box text-bg-secondary audiencia-indicador">
+                    <div class="inner">
+                        <h3 id="totalFinalizadas">0</h3>
+                        <p>Finalizadas</p>
+                    </div>
+                    <i class="fa-solid fa-circle-check small-box-icon"
+                    aria-hidden="true"></i>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ==========================================
+             CALENDARIO Y DETALLE
+        =========================================== -->
+
+        <div class="row">
+
+            <!-- ======================================
+                 COLUMNA IZQUIERDA: CALENDARIO (8)
+            ======================================= -->
+
+            <div class="col-lg-8 mb-3">
+
+                <div class="card card-primary card-outline h-100">
+
+                    <div class="card-header">
+
+                        <h3 class="card-title">
+
+                            <i class="fa-solid fa-calendar-days me-2"></i>
+                            Calendario de audiencias
+
+                        </h3>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <!-- LEYENDA DE COLORES -->
+
+                        <div class="mb-3">
+
+                            <span class="leyenda-item">
+                                <span class="leyenda-color"
+                                      style="background:#dc3545"></span>
+                                Hoy
+                            </span>
+
+                            <span class="leyenda-item">
+                                <span class="leyenda-color"
+                                      style="background:#fd7e14"></span>
+                                Próxima (1-2 días)
+                            </span>
+
+                            <span class="leyenda-item">
+                                <span class="leyenda-color"
+                                      style="background:#198754"></span>
+                                Próxima (3-7 días)
+                            </span>
+
+                            <span class="leyenda-item">
+                                <span class="leyenda-color"
+                                      style="background:#0d6efd"></span>
+                                Futura
+                            </span>
+
+                            <span class="leyenda-item">
+                                <span class="leyenda-color"
+                                      style="background:#6c757d"></span>
+                                Finalizada
+                            </span>
+
+                        </div>
+
+
+                        <!-- CONTENEDOR FULLCALENDAR -->
+
+                        <div id="calendarioAudiencias"></div>
+
+                        <!-- MENSAJE DE ERROR -->
+
+                        <div id="errorCalendario"
+                             class="alert alert-danger mt-3"
+                             style="display:none">
+
+                            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+
+                            No fue posible cargar las audiencias.
+                            Revise la conexión con el servidor.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ======================================
+                 COLUMNA DERECHA: DETALLE (4)
+            ======================================= -->
+
+            <div class="col-lg-4 mb-3">
+
+                <div class="card card-primary card-outline h-100">
+
+                    <div class="card-header">
+
+                        <h3 class="card-title">
+
+                            <i class="fa-solid fa-circle-info me-2"></i>
+                            Detalle de audiencia
+
+                        </h3>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <!-- MENSAJE INICIAL -->
+
+                        <div id="detalleVacio"
+                             class="text-center py-5">
+
+                            <i class="fa-solid fa-calendar-check fa-3x
+                                      text-secondary mb-3"></i>
+
+                            <h5>Seleccione una audiencia</h5>
+
+                            <p class="text-muted small">
+
+                                Haga clic sobre una programación del
+                                calendario para consultar sus detalles.
+
+                            </p>
+
+                        </div>
+
+
+                        <!-- INFORMACIÓN DE AUDIENCIA -->
+
+                        <div id="detalleAudiencia" style="display:none">
+
+                            <h5 id="detalleTitulo"
+                                class="fw-bold mb-3">
+                            </h5>
+
+
+                            <div class="mb-3">
+
+                                <span id="detalleIndicador"
+                                      class="indicador-situacion">
+                                </span>
+
+                            </div>
+
+                            <hr>
+
+
+                            <div class="detalle-label">
+                                Número de expediente
+                            </div>
+
+                            <div id="detalleExpediente"
+                                 class="detalle-valor">-</div>
+
+
+                            <div class="detalle-label">
+                                Fecha de audiencia
+                            </div>
+
+                            <div id="detalleFecha"
+                                 class="detalle-valor">-</div>
+
+
+                            <div class="detalle-label">
+                                Horario
+                            </div>
+
+                            <div id="detalleHorario"
+                                 class="detalle-valor">-</div>
+
+
+                            <div class="detalle-label">
+                                Sede judicial
+                            </div>
+
+                            <div id="detalleSede"
+                                 class="detalle-valor">-</div>
+
+
+                            <div class="detalle-label">
+                                Sala judicial
+                            </div>
+
+                            <div id="detalleSala"
+                                 class="detalle-valor">-</div>
+
+
+                            <div class="detalle-label">
+                                Responsable
+                            </div>
+
+                            <div id="detalleResponsable"
+                                 class="detalle-valor">-</div>
+
+
+                            <hr>
+
+
+                            <!-- ACCIONES -->
+
+                            <div class="d-grid gap-2">
+
+                                <button type="button"
+                                        id="btnEditarAudiencia"
+                                        class="btn btn-warning"
+                                        th:if="${esAdministrador or esOperador}">
+                                    <i class="fa-solid fa-pen-to-square me-1"></i>
+                                    Editar audiencia
+                                </button>
+
+                                <button type="button"
+                                        id="btnCancelarAudiencia"
+                                        class="btn btn-danger"
+                                        th:if="${esAdministrador or esOperador}">
+                                    <i class="fa-solid fa-ban me-1"></i>
+                                    Cancelar audiencia
+                                </button>
+
+                                <a id="btnVerQoS"
+                                   href="#"
+                                   class="btn btn-primary">
+
+                                    <i class="fa-solid fa-network-wired me-1"></i>
+                                    Consultar QoS
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="card-footer text-muted small">
+
+                        <i class="fa-solid fa-circle-info me-1"></i>
+
+                        Seleccione un evento para consultar su información.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==============================================
+         JAVASCRIPT
+    =============================================== -->
+
+    <script>
+
+    (function () {
+
+        // Evitar inicialización duplicada
+        if (window.audienciasCalendarInit) {
+            return;
+        }
+
+        window.audienciasCalendarInit = true;
+
+
+        function iniciarCalendario() {
+
+            console.log('================================');
+            console.log('SAJV-QoS - CALENDARIO');
+            console.log('================================');
+
+
+            // 1. COMPROBAR FULLCALENDAR
+
+            console.log(
+                'FullCalendar:',
+                typeof window.FullCalendar
+            );
+
+            if (typeof window.FullCalendar === 'undefined') {
+
+                console.error(
+                    'FullCalendar no está cargado.'
+                );
+
+                window.audienciasCalendarInit = false;
+
+                return;
+            }
+
+
+            // 2. COMPROBAR CONTENEDOR
+
+            const elemento = document.getElementById(
+                'calendarioAudiencias'
+            );
+
+            if (!elemento) {
+
+                console.error(
+                    'No existe el contenedor del calendario.'
+                );
+
+                window.audienciasCalendarInit = false;
+
+                return;
+            }
+
+
+            // 3. FUNCIONES AUXILIARES
+
+            function fechaLocal(fecha) {
+
+                const anio = fecha.getFullYear();
+
+                const mes = String(
+                    fecha.getMonth() + 1
+                ).padStart(2, '0');
+
+                const dia = String(
+                    fecha.getDate()
+                ).padStart(2, '0');
+
+                return `${anio}-${mes}-${dia}`;
+            }
+
+
+            function nombreSituacion(valor) {
+
+                const estados = {
+                    1: 'Programada',
+                    2: 'En curso',
+                    3: 'Finalizada',
+                    4: 'Cancelada',
+                    5: 'Suspendida'
+                };
+
+                return estados[Number(valor)]
+                    || 'Sin situación';
+            }
+
+
+            // 4. DETERMINAR COLOR DEL EVENTO
+
+            function colorSituacion(evento) {
+
+                const situacion = Number(evento.situacion);
+
+                // Situaciones especiales
+
+                if (situacion === 2) return '#198754';
+
+                if (situacion === 3) return '#6c757d';
+
+                if (situacion === 4) return '#dc3545';
+
+                if (situacion === 5) return '#fd7e14';
+
+
+                // Proximidad de audiencias programadas
+
+                const inicio = new Date(evento.start);
+
+                const hoy = new Date();
+
+                const fechaEvento = new Date(
+                    inicio.getFullYear(),
+                    inicio.getMonth(),
+                    inicio.getDate()
+                );
+
+                const fechaHoy = new Date(
+                    hoy.getFullYear(),
+                    hoy.getMonth(),
+                    hoy.getDate()
+                );
+
+                const dias = Math.round(
+                    (fechaEvento - fechaHoy) / 86400000
+                );
+
+
+                if (dias <= 0) return '#dc3545';
+
+                if (dias <= 2) return '#fd7e14';
+
+                if (dias <= 7) return '#198754';
+
+                return '#0d6efd';
+            }
+
+
+            // 5. CONFIGURAR CALENDARIO
+
+            const calendario = new FullCalendar.Calendar(
+                elemento,
+                {
+
+                    initialView: 'dayGridMonth',
+
+                    locale: 'es',
+
+                    height: 'auto',
+
+                    expandRows: true,
+
+                    nowIndicator: true,
+
+                    editable: false,
+
+                    selectable: false,
+
+                    dayMaxEvents: true,
+
+                    eventDisplay: 'block',
+
+                    displayEventTime: true,
+
+                    eventTimeFormat: {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    },
+
+
+                    headerToolbar: {
+
+                        left: 'prev,next today',
+
+                        center: 'title',
+
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+
+                    },
+
+
+                    buttonText: {
+
+                        today: 'Hoy',
+
+                        month: 'Mes',
+
+                        week: 'Semana',
+
+                        day: 'Día'
+
+                    },
+
+
+                    // ==================================
+                    // CONSULTA A LA API REST
+                    // ==================================
+
+                    events: async function (
+                        fetchInfo,
+                        successCallback,
+                        failureCallback
+                    ) {
+
+                        console.log(
+                            'Consultando API de audiencias...'
+                        );
+
+                        try {
+
+                            const respuesta = await fetch(
+                                '/api/audiencias/calendario',
+                                {
+                                    method: 'GET',
+                                    headers: {
+                                        'Accept': 'application/json'
+                                    }
+                                }
+                            );
+
+
+                            console.log(
+                                'Respuesta HTTP:',
+                                respuesta.status
+                            );
+
+
+                            if (!respuesta.ok) {
+
+                                throw new Error(
+                                    'Error HTTP ' + respuesta.status
+                                );
+
+                            }
+
+
+                            const datos = await respuesta.json();
+
+
+                            console.log(
+                                'Audiencias recibidas:',
+                                datos
+                            );
+
+
+                            if (!Array.isArray(datos)) {
+
+                                throw new Error(
+                                    'La API no devolvió una lista JSON.'
+                                );
+
+                            }
+
+
+                            console.log(
+                                'Cantidad de audiencias:',
+                                datos.length
+                            );
+
+
+                            document.getElementById(
+                                'errorCalendario'
+                            ).style.display = 'none';
+
+
+                            successCallback(datos);
+
+                        } catch (error) {
+
+                            console.error(
+                                'Error consultando audiencias:',
+                                error
+                            );
+
+
+                            document.getElementById(
+                                'errorCalendario'
+                            ).style.display = 'block';
+
+
+                            failureCallback(error);
+
+                        }
+
+                    },
+
+
+                    // ==================================
+                    // COLORES DE LOS EVENTOS
+                    // ==================================
+
+                    eventDataTransform: function (evento) {
+
+                        evento.color = colorSituacion(evento);
+
+                        return evento;
+
+                    },
+
+
+                    // ==================================
+                    // ACTUALIZAR INDICADORES
+                    // ==================================
+
+                    eventsSet: function (eventos) {
+
+                        const hoy = fechaLocal(new Date());
+                        let programadas = 0;
+                        let paraHoy = 0;
+                        let enCurso = 0;
+                        let finalizadas = 0;
+
+                        eventos.forEach(function (evento) {
+                            const situacion = Number(evento.extendedProps.situacion);
+                            const fecha = fechaLocal(evento.start);
+
+                            if (situacion === 1) {
+                                programadas++;
+                                if (fecha === hoy) paraHoy++;
+                            }
+                            if (situacion === 2) enCurso++;
+                            if (situacion === 3) finalizadas++;
+                        });
+
+                        document.getElementById('totalAudiencias').textContent = programadas;
+                        document.getElementById('totalHoy').textContent = paraHoy;
+                        document.getElementById('totalCurso').textContent = enCurso;
+                        document.getElementById('totalFinalizadas').textContent = finalizadas;
+
+                        // Sincronizar el panel de detalle con la versión recién recibida.
+                        if (window.audienciaSeleccionada) {
+                            const idSeleccionado = String(window.audienciaSeleccionada.id);
+                            const eventoActualizado = calendario.getEventById(idSeleccionado);
+
+                            if (eventoActualizado) {
+                                window.audienciaSeleccionada = eventoActualizado;
+                                const datos = eventoActualizado.extendedProps;
+                                const indicador = document.getElementById('detalleIndicador');
+
+                                if (indicador) {
+                                    indicador.textContent = nombreSituacion(datos.situacion);
+                                    indicador.style.backgroundColor =
+                                        eventoActualizado.backgroundColor || colorSituacion({
+                                            situacion: datos.situacion,
+                                            start: eventoActualizado.start
+                                        });
+                                }
+
+                                const editable = Number(datos.estado) === 1 &&
+                                    Number(datos.situacion) !== 4;
+                                const botonEditar = document.getElementById('btnEditarAudiencia');
+                                const botonCancelar = document.getElementById('btnCancelarAudiencia');
+
+                                if (botonEditar) {
+                                    botonEditar.disabled = !editable;
+                                    botonEditar.title = editable
+                                        ? 'Editar audiencia'
+                                        : 'Esta audiencia no se puede editar';
+                                }
+                                if (botonCancelar) {
+                                    botonCancelar.disabled = !editable;
+                                    botonCancelar.title = editable
+                                        ? 'Cancelar audiencia'
+                                        : 'Esta audiencia ya está cancelada o inactiva';
+                                }
+                            } else {
+                                window.audienciaSeleccionada = null;
+                            }
+                        }
+
+                        console.log('Indicadores actualizados:', {
+                            programadas, paraHoy, enCurso, finalizadas
+                        });
+                    },
+
+                    // ==================================
+                    // SELECCIONAR EVENTO
+                    // ==================================
+
+                    eventClick: function (info) {
+
+                        const evento = info.event;
+
+                        const datos = evento.extendedProps;
+                        window.audienciaSeleccionada = evento;
+
+
+                        console.log(
+                            'Audiencia seleccionada:',
+                            evento
+                        );
+
+
+                        // Mostrar panel
+
+                        document.getElementById(
+                            'detalleVacio'
+                        ).style.display = 'none';
+
+
+                        document.getElementById(
+                            'detalleAudiencia'
+                        ).style.display = 'block';
+
+
+                        // Título
+
+                        document.getElementById(
+                            'detalleTitulo'
+                        ).textContent = evento.title;
+
+
+                        // Expediente
+
+                        document.getElementById(
+                            'detalleExpediente'
+                        ).textContent =
+                            datos.expediente || '-';
+
+
+                        // Fecha
+
+                        document.getElementById(
+                            'detalleFecha'
+                        ).textContent = evento.start
+                            ? evento.start.toLocaleDateString('es-PE')
+                            : '-';
+
+
+                        // Horario
+
+                        document.getElementById(
+                            'detalleHorario'
+                        ).textContent = evento.start
+                            ? evento.start.toLocaleTimeString('es-PE', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false
+                            }) + ' - ' +
+                            (evento.end
+                                ? evento.end.toLocaleTimeString('es-PE', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: false
+                                })
+                                : '-')
+                            : '-';
+
+
+                        // Sede
+
+                        document.getElementById(
+                            'detalleSede'
+                        ).textContent = datos.sede || '-';
+
+
+                        // Sala
+
+                        document.getElementById(
+                            'detalleSala'
+                        ).textContent = datos.sala || '-';
+
+
+                        // Responsable
+
+                        document.getElementById(
+                            'detalleResponsable'
+                        ).textContent =
+                            datos.responsable || '-';
+
+
+                        // Situación
+
+                        const indicador = document.getElementById(
+                            'detalleIndicador'
+                        );
+
+                        indicador.textContent = nombreSituacion(
+                            datos.situacion
+                        );
+
+                        indicador.style.backgroundColor =
+                            evento.backgroundColor || '#6c757d';
+
+
+                        // Estado del registro
+
+                        // 1 = Activo, 0 = No activo
+                        // Se conserva para futuras ampliaciones
+                        console.log(
+                            'Estado del registro:',
+                            datos.estado
+                        );
+
+
+                        // Mostrar acciones según la situación de la audiencia.
+                        const audienciaEditable = Number(datos.estado) === 1
+                            && Number(datos.situacion) !== 4;
+
+                        const botonEditar = document.getElementById('btnEditarAudiencia');
+                        const botonCancelar = document.getElementById('btnCancelarAudiencia');
+
+                        if (botonEditar) {
+                            botonEditar.disabled = !audienciaEditable;
+                            botonEditar.title = audienciaEditable
+                                ? 'Editar audiencia'
+                                : 'Esta audiencia no se puede editar';
+                        }
+
+                        if (botonCancelar) {
+                            botonCancelar.disabled = !audienciaEditable;
+                            botonCancelar.title = audienciaEditable
+                                ? 'Cancelar audiencia'
+                                : 'Esta audiencia ya está cancelada o inactiva';
+                        }
+
+                        // Enlace al módulo QoS.
+                        document.getElementById('btnVerQoS').href =
+                            '/qos/audiencia/' + evento.id;
+
+                    }
+
+                }
+            );
+
+
+            // 6. DIBUJAR CALENDARIO
+
+            calendario.render();
+
+            window.calendarioAudiencias = calendario;
+
+            // Actualizar eventos, colores e indicadores sin recargar la página.
+            if (window.audienciasRefreshTimer) {
+                clearInterval(window.audienciasRefreshTimer);
+            }
+
+            window.audienciasRefreshTimer = setInterval(function () {
+                console.log('Actualizando audiencias automáticamente...');
+                calendario.refetchEvents();
+            }, 30000);
+
+            console.log(
+                'Calendario inicializado correctamente. Actualización automática cada 30 segundos.'
+            );
+
+            console.log('================================');
+
+        }
+
+
+        // Esperar a que el DOM esté disponible
+
+        if (document.readyState === 'loading') {
+
+            document.addEventListener(
+                'DOMContentLoaded',
+                iniciarCalendario,
+                { once: true }
+            );
+
+        } else {
+
+            iniciarCalendario();
+
+        }
+
+    })();
+
+    </script>
+
+    
+<!-- ==========================================
+     MODAL: REGISTRAR AUDIENCIA
+=========================================== -->
+
+<div class="modal fade"
+     id="modalAudiencia"
+     tabindex="-1"
+     aria-labelledby="tituloModalAudiencia"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <!-- ENCABEZADO -->
+
+            <div class="modal-header bg-primary text-white">
+
+                <h5 class="modal-title"
+                    id="tituloModalAudiencia">
+
+                    <i class="fa-solid fa-calendar-plus me-2"></i>
+                    <span id="textoTituloModal">Registrar nueva audiencia</span>
+
+                </h5>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+
+            <!-- FORMULARIO -->
+
+            <form id="formAudiencia"
+                  th:action="@{/audiencias/guardar}"
+                  method="post">
+
+                <div class="modal-body">
+
+                    <!-- CSRF Spring Security -->
+
+                    <input type="hidden"
+                           th:if="${_csrf != null}"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}">
+
+                    <input type="hidden" id="audienciaId" name="audienciaId">
+
+                    <div class="row g-3">
+
+                        <!-- EXPEDIENTE -->
+
+                        <div class="col-md-12">
+
+                            <label for="nroExpediente"
+                                   class="form-label">
+
+                                Número de expediente *
+
+                            </label>
+
+                            <input type="text"
+                                   class="form-control"
+                                   id="nroExpediente"
+                                   name="nroExpediente"
+                                   maxlength="20"
+                                   placeholder="Ej. 00125-2026"
+                                   required>
+
+                        </div>
+
+
+                        <!-- SEDE -->
+
+                        <!-- SEDE: ADMINISTRADOR -->
+                            <div class="col-md-6"
+                                th:if="${esAdministrador}">
+
+                                <label for="sedeId" class="form-label">
+                                    Sede judicial *
+                                </label>
+
+                                <select id="sedeId"
+                                        name="sedeId"
+                                        class="form-select"
+                                        required>
+
+                                    <option value="">Seleccionar sede</option>
+
+                                    <option th:each="sede : ${sedes}"
+                                            th:value="${sede.id}"
+                                            th:text="${sede.descripcion}">
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        <!-- SEDE: OPERADOR -->
+                            <div class="col-md-6"
+                                th:if="${esOperador}">
+
+                                <label for="sedeId" class="form-label">
+                                    Sede judicial
+                                </label>
+
+                                <input type="text"
+                                    class="form-control"
+                                    th:value="${sedeUsuario.descripcion}"
+                                    readonly>
+
+                                <input type="hidden"
+                                    id="sedeId"
+                                    name="sedeId"
+                                    th:value="${sedeUsuario.id}">
+
+                            </div>
+
+                        <!-- SALA -->
+
+                        <div class="col-md-6">
+
+                            <label for="salaId"
+                                   class="form-label">
+
+                                Sala judicial *
+
+                            </label>
+
+                            <select id="salaId"
+                                    name="salaId"
+                                    class="form-select"
+                                    required
+                                    disabled>
+
+                                <option value="">
+                                    Primero seleccione una sede
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- FECHA -->
+
+                        <div class="col-md-6">
+
+                            <label for="fecha"
+                                   class="form-label">
+
+                                Fecha de audiencia *
+
+                            </label>
+
+                            <input type="date"
+                                   class="form-control"
+                                   id="fecha"
+                                   name="fecha"
+                                   required>
+
+                        </div>
+
+
+                        <!-- TIPO -->
+
+                        <div class="col-md-6">
+
+                            <label for="tipo"
+                                   class="form-label">
+
+                                Tipo de audiencia *
+
+                            </label>
+
+                            <select class="form-select"
+                                    id="tipo"
+                                    name="tipo"
+                                    required>
+
+                                <option value="">
+                                    Seleccionar tipo
+                                </option>
+
+                                <option value="1">Virtual</option>
+                                <option value="2">Presencial</option>
+                                <option value="3">Mixta</option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- HORA INICIO -->
+
+                        <div class="col-md-6">
+
+                            <label for="horaInicio"
+                                   class="form-label">
+
+                                Hora de inicio *
+
+                            </label>
+
+                            <input type="time"
+                                   class="form-control"
+                                   id="horaInicio"
+                                   name="horaInicio"
+                                   required>
+
+                        </div>
+
+
+                        <!-- HORA FIN -->
+
+                        <div class="col-md-6">
+
+                            <label for="horaFin"
+                                   class="form-label">
+
+                                Hora de fin *
+
+                            </label>
+
+                            <input type="time"
+                                   class="form-control"
+                                   id="horaFin"
+                                   name="horaFin"
+                                   required>
+
+                        </div>
+
+
+                        <!-- RESPONSABLE -->
+
+                        <div class="col-md-6">
+
+                            <label for="responsable"
+                                   class="form-label">
+
+                                Responsable *
+
+                            </label>
+
+                            <input type="text"
+                                   class="form-control"
+                                   id="responsable"
+                                   name="responsable"
+                                   maxlength="80"
+                                   required>
+
+                        </div>
+
+
+                        <!-- COHOST -->
+
+                        <div class="col-md-6">
+
+                            <label for="coHost"
+                                   class="form-label">
+
+                                Co-Host
+
+                            </label>
+
+                            <input type="text"
+                                   class="form-control"
+                                   id="coHost"
+                                   name="coHost"
+                                   maxlength="80">
+
+                        </div>
+
+
+                        <!-- COMENTARIOS -->
+
+                        <div class="col-md-12">
+
+                            <label for="comentarios"
+                                   class="form-label">
+
+                                Comentarios
+
+                            </label>
+
+                            <textarea class="form-control"
+                                      id="comentarios"
+                                      name="comentarios"
+                                      rows="3"
+                                      maxlength="200"
+                                      placeholder="Observaciones adicionales..."></textarea>
+
+                        </div>
+
+                    </div>
+
+                    <div id="errorFormulario"
+                         class="alert alert-danger mt-3"
+                         style="display:none">
+                    </div>
+
+                </div>
+
+
+                <!-- PIE -->
+
+                <div class="modal-footer">
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+
+                        <i class="fa-solid fa-xmark me-1"></i>
+                        Cancelar
+
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        <i class="fa-solid fa-floppy-disk me-1"></i>
+                        <span id="textoBotonGuardar">Guardar audiencia</span>
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- FORMULARIO INDEPENDIENTE PARA CANCELACIÓN LÓGICA -->
+<form id="formCancelarAudiencia"
+      th:action="@{/audiencias/cancelar}"
+      method="post"
+      style="display:none">
+    <input type="hidden" id="audienciaIdCancelar" name="audienciaId">
+    <input type="hidden"
+           th:if="${_csrf != null}"
+           th:name="${_csrf.parameterName}"
+           th:value="${_csrf.token}">
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const formulario = document.getElementById('formAudiencia');
+    const modalElemento = document.getElementById('modalAudiencia');
+    const sedeSelect = document.getElementById('sedeId');
+    const salaSelect = document.getElementById('salaId');
+    const campoAudienciaId = document.getElementById('audienciaId');
+    const tituloModal = document.getElementById('textoTituloModal');
+    const textoBotonGuardar = document.getElementById('textoBotonGuardar');
+    const botonEditar = document.getElementById('btnEditarAudiencia');
+    const botonCancelar = document.getElementById('btnCancelarAudiencia');
+    const formularioCancelar = document.getElementById('formCancelarAudiencia');
+
+    if (!formulario || !modalElemento || !sedeSelect || !salaSelect) {
+        console.error('No se encontraron los elementos del formulario de audiencias.');
+        return;
+    }
+
+    // Carga las salas de una sede y, opcionalmente, selecciona una sala.
+    async function cargarSalas(sedeId, salaSeleccionada = null) {
+        salaSelect.innerHTML = '<option value="">Cargando salas...</option>';
+        salaSelect.disabled = true;
+
+        if (!sedeId) {
+            salaSelect.innerHTML = '<option value="">Primero seleccione una sede</option>';
+            return false;
+        }
+
+        try {
+            const respuesta = await fetch(
+                `/salas/por-sede/${encodeURIComponent(sedeId)}`,
+                {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                }
+            );
+
+            if (!respuesta.ok) {
+                throw new Error('Error HTTP al cargar salas: ' + respuesta.status);
+            }
+
+            const salas = await respuesta.json();
+            salaSelect.innerHTML = '<option value="">Seleccione una sala</option>';
+
+            salas.forEach(sala => {
+                const opcion = document.createElement('option');
+                opcion.value = sala.id;
+                opcion.textContent = sala.descripcion;
+                salaSelect.appendChild(opcion);
+            });
+
+            salaSelect.disabled = salas.length === 0;
+
+            if (salas.length === 0) {
+                salaSelect.innerHTML = '<option value="">No hay salas disponibles</option>';
+                return false;
+            }
+
+            if (salaSeleccionada !== null) {
+                salaSelect.value = String(salaSeleccionada);
+            }
+
+            return true;
+
+        } catch (error) {
+            console.error('Error cargando salas:', error);
+            salaSelect.innerHTML = '<option value="">Error al cargar las salas</option>';
+            salaSelect.disabled = true;
+            throw error;
+        }
+    }
+
+    // Administrador: recargar salas cuando cambia la sede.
+    if (sedeSelect.tagName === 'SELECT') {
+        sedeSelect.addEventListener('change', function () {
+            cargarSalas(sedeSelect.value).catch(error => console.error(error));
+        });
+    }
+
+    // Restablecer el modal para registrar una nueva audiencia.
+    const botonNuevaAudiencia = document.querySelector('[data-bs-target="#modalAudiencia"]');
+
+    if (botonNuevaAudiencia) {
+        botonNuevaAudiencia.addEventListener('click', function () {
+            formulario.reset();
+            campoAudienciaId.value = '';
+            formulario.action = '/audiencias/guardar';
+            tituloModal.textContent = 'Registrar nueva audiencia';
+            textoBotonGuardar.textContent = 'Guardar audiencia';
+
+            const sedeInicial = sedeSelect.value;
+            if (sedeInicial) {
+                cargarSalas(sedeInicial).catch(error => console.error(error));
+            } else {
+                salaSelect.innerHTML = '<option value="">Primero seleccione una sede</option>';
+                salaSelect.disabled = true;
+            }
+        });
+    }
+
+    // Editar la audiencia seleccionada en FullCalendar.
+    if (botonEditar) {
+        botonEditar.addEventListener('click', async function () {
+            const evento = window.audienciaSeleccionada;
+
+            if (!evento) {
+                alert('Primero selecciona una audiencia del calendario.');
+                return;
+            }
+
+            const datos = evento.extendedProps;
+
+            if (Number(datos.estado) !== 1 || Number(datos.situacion) === 4) {
+                alert('Esta audiencia no se puede editar porque está cancelada o inactiva.');
+                return;
+            }
+
+            try {
+                formulario.reset();
+                campoAudienciaId.value = evento.id;
+
+                document.getElementById('nroExpediente').value = datos.expediente || '';
+                document.getElementById('responsable').value = datos.responsable || '';
+                document.getElementById('coHost').value = datos.coHost || '';
+                document.getElementById('tipo').value = datos.tipo != null ? String(datos.tipo) : '';
+                document.getElementById('comentarios').value = datos.comentarios || '';
+
+                // Fecha y hora usando la hora local del navegador.
+                const dosDigitos = valor => String(valor).padStart(2, '0');
+                const fecha = evento.start;
+                document.getElementById('fecha').value =
+                    `${fecha.getFullYear()}-${dosDigitos(fecha.getMonth() + 1)}-${dosDigitos(fecha.getDate())}`;
+                document.getElementById('horaInicio').value =
+                    `${dosDigitos(fecha.getHours())}:${dosDigitos(fecha.getMinutes())}`;
+
+                const fin = evento.end;
+                document.getElementById('horaFin').value = fin
+                    ? `${dosDigitos(fin.getHours())}:${dosDigitos(fin.getMinutes())}`
+                    : '';
+
+                // El administrador puede seleccionar otra sede.
+                // El operador conserva la sede asignada, validada nuevamente en el servicio.
+                const sedeIdEvento = datos.sedeId;
+                if (sedeSelect.tagName === 'SELECT') {
+                    sedeSelect.value = sedeIdEvento != null ? String(sedeIdEvento) : '';
+                }
+
+                await cargarSalas(sedeIdEvento, datos.salaId);
+
+                formulario.action = '/audiencias/editar';
+                tituloModal.textContent = 'Editar audiencia';
+                textoBotonGuardar.textContent = 'Actualizar audiencia';
+
+                bootstrap.Modal.getOrCreateInstance(modalElemento).show();
+
+            } catch (error) {
+                console.error('No se pudo preparar la edición:', error);
+                alert('No fue posible cargar todos los datos de la audiencia. Verifica la conexión y vuelve a intentarlo.');
+            }
+        });
+    }
+
+    // Cancelación lógica con confirmación del usuario.
+    if (botonCancelar) {
+        botonCancelar.addEventListener('click', function () {
+            const evento = window.audienciaSeleccionada;
+
+            if (!evento) {
+                alert('Primero selecciona una audiencia del calendario.');
+                return;
+            }
+
+            const datos = evento.extendedProps;
+
+            if (Number(datos.estado) !== 1 || Number(datos.situacion) === 4) {
+                alert('Esta audiencia ya está cancelada o inactiva.');
+                return;
+            }
+
+            const confirmar = confirm(
+                `¿Estás seguro de cancelar la audiencia ${datos.expediente || evento.title}? Esta acción conservará el registro histórico.`
+            );
+
+            if (confirmar) {
+                document.getElementById('audienciaIdCancelar').value = evento.id;
+                formularioCancelar.submit();
+            }
+        });
+    }
+
+    // Al cerrar el modal, limpiar errores visuales y restaurar el modo registro
+    // solo cuando el usuario vuelva a pulsar "Nueva audiencia".
+    modalElemento.addEventListener('hidden.bs.modal', function () {
+        const errorFormulario = document.getElementById('errorFormulario');
+        if (errorFormulario) {
+            errorFormulario.textContent = '';
+            errorFormulario.style.display = 'none';
+        }
+    });
+
+    // Operador: cargar automáticamente las salas de su sede asignada.
+    if (sedeSelect.value) {
+        cargarSalas(sedeSelect.value).catch(error => console.error(error));
+    }
+
+});
+</script>
+
+</body>
+</html>

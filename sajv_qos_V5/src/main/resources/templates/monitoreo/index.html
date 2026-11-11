@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/main :: layout('Monitoreo de red', ~{::contenido})}">
+
+<th:block th:fragment="contenido">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <div>
+            <h4 class="mb-1">Monitoreo de infraestructura y QoS</h4>
+            <p class="text-muted mb-0">Estado de equipos registrados y última operación QoS conocida.</p>
+        </div>
+        <div class="text-end">
+            <div class="d-flex flex-wrap justify-content-end gap-1">
+                <span class="badge text-bg-warning" th:if="${monitoreo.modoSimulacion}">QoS EN SIMULACIÓN</span>
+                <span class="badge text-bg-success" th:unless="${monitoreo.modoSimulacion}">QoS REAL</span>
+                <span id="modoMonitoreo"
+                      th:class="${monitoreo.monitoreoTcpHabilitado} ? 'badge text-bg-success' : 'badge text-bg-secondary'"
+                      th:text="${monitoreo.monitoreoTcpHabilitado} ? 'MONITOREO TCP ACTIVO' : 'MONITOREO TCP DESHABILITADO'">
+                    MONITOREO TCP DESHABILITADO
+                </span>
+            </div>
+            <div class="small text-muted mt-1">
+                Actualizado: <span id="fechaConsulta"
+                    th:text="${#temporals.format(monitoreo.consultadoEn, 'dd/MM/yyyy HH:mm:ss')}">--</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info" th:if="${!monitoreo.monitoreoTcpHabilitado}">
+        <i class="fa-solid fa-circle-info me-2"></i>
+        El monitoreo TCP real está deshabilitado. Los equipos se muestran como simulados.
+        Puedes habilitar la comprobación TCP sin cambiar el modo de ejecución QoS.
+    </div>
+
+    <div class="alert alert-secondary" th:if="${monitoreo.monitoreoTcpHabilitado}">
+        <i class="fa-solid fa-network-wired me-2"></i>
+        Se comprueba la apertura TCP hacia la IP y puerto de administración configurados.
+        Esto no equivale a ping ICMP ni valida autenticación SSH, estado de interfaces o políticas QoS.
+        El modo de simulación QoS se controla de forma independiente.
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-xl-3 col-md-6">
+            <div class="small-box text-bg-primary">
+                <div class="inner"><h3 id="totalEquipos" th:text="${monitoreo.equiposActivos}">0</h3><p>Equipos activos registrados</p></div>
+                <div class="small-box-icon"><i class="fa-solid fa-server"></i></div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="small-box text-bg-success">
+                <div class="inner"><h3 id="equiposConectados" th:text="${monitoreo.equiposConectados}">0</h3><p>Conectados</p></div>
+                <div class="small-box-icon"><i class="fa-solid fa-link"></i></div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="small-box text-bg-danger">
+                <div class="inner"><h3 id="equiposSinRespuesta" th:text="${monitoreo.equiposSinRespuesta}">0</h3><p>Sin respuesta</p></div>
+                <div class="small-box-icon"><i class="fa-solid fa-link-slash"></i></div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="small-box text-bg-info">
+                <div class="inner"><h3 id="politicasActivas" th:text="${monitoreo.politicasQosActivas}">0</h3><p>Última operación QoS: activa</p></div>
+                <div class="small-box-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-network-wired me-2"></i>Estado de equipos por sede</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-sm btn-outline-primary" id="btnActualizar">
+                    <i class="fa-solid fa-rotate me-1"></i>Actualizar
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Equipo</th><th>Sede</th><th>IP / Puerto</th>
+                        <th>Conectividad</th><th>Latencia</th><th>Estado QoS</th>
+                        <th>Última operación</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tablaEquipos">
+                    <tr th:each="equipo : ${monitoreo.equipos}">
+                        <td>
+                            <div class="fw-semibold" th:text="${equipo.nombre}">Router</div>
+                            <small class="text-muted" th:text="${equipo.detalle}">Detalle</small>
+                        </td>
+                        <td th:text="${equipo.sede}">Sede</td>
+                        <td class="text-nowrap" th:text="${equipo.ip + ':' + equipo.puerto}">10.0.0.1:22</td>
+                        <td>
+                            <span th:if="${equipo.estadoEquipo == 'SIMULADO'}" class="badge text-bg-warning">Simulado</span>
+                            <span th:if="${equipo.estadoEquipo == 'CONECTADO'}" class="badge text-bg-success">Conectado</span>
+                            <span th:if="${equipo.estadoEquipo == 'SIN_RESPUESTA'}" class="badge text-bg-danger">Sin respuesta</span>
+                        </td>
+                        <td th:text="${equipo.latenciaMs == null ? '—' : equipo.latenciaMs + ' ms'}">—</td>
+                        <td>
+                            <span th:if="${equipo.estadoQos == 'ACTIVA'}" class="badge text-bg-success">Activa</span>
+                            <span th:if="${equipo.estadoQos == 'INACTIVA'}" class="badge text-bg-secondary">Inactiva</span>
+                            <span th:if="${equipo.estadoQos == 'SIN_REGISTRO'}" class="badge text-bg-light">Sin registro</span>
+                            <span th:if="${equipo.estadoQos == 'OPERACION_NO_EXITOSA'}" class="badge text-bg-danger">Operación no exitosa</span>
+                        </td>
+                        <td>
+                            <div th:text="${equipo.ultimaAccion}">Sin operaciones</div>
+                            <small class="text-muted"
+                                   th:if="${equipo.ultimaOperacion != null}"
+                                   th:text="${#temporals.format(equipo.ultimaOperacion, 'dd/MM/yyyy HH:mm:ss')}"></small>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(monitoreo.equipos)}">
+                        <td colspan="7" class="text-center text-muted py-4">
+                            No hay equipos de red activos registrados.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer text-muted small">
+            <i class="fa-regular fa-clock me-1"></i>
+            Actualización automática cada 30 segundos.
+            <span id="estadoActualizacion" class="ms-2"></span>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+    (() => {
+        const endpoint = /*[[@{/api/monitoreo/resumen}]]*/ '/api/monitoreo/resumen';
+        const fecha = value => value ? new Date(value).toLocaleString('es-PE') : '—';
+
+        function badgeConexion(estado) {
+            if (estado === 'CONECTADO') return '<span class="badge text-bg-success">Conectado</span>';
+            if (estado === 'SIN_RESPUESTA') return '<span class="badge text-bg-danger">Sin respuesta</span>';
+            return '<span class="badge text-bg-warning">Simulado</span>';
+        }
+
+        function badgeQos(estado) {
+            if (estado === 'ACTIVA') return '<span class="badge text-bg-success">Activa</span>';
+            if (estado === 'INACTIVA') return '<span class="badge text-bg-secondary">Inactiva</span>';
+            if (estado === 'OPERACION_NO_EXITOSA') return '<span class="badge text-bg-danger">Operación no exitosa</span>';
+            return '<span class="badge text-bg-light">Sin registro</span>';
+        }
+
+        function render(data) {
+            document.getElementById('totalEquipos').textContent = data.equiposActivos;
+            document.getElementById('equiposConectados').textContent = data.equiposConectados;
+            document.getElementById('equiposSinRespuesta').textContent = data.equiposSinRespuesta;
+            document.getElementById('politicasActivas').textContent = data.politicasQosActivas;
+            document.getElementById('fechaConsulta').textContent = fecha(data.consultadoEn);
+
+            const modo = document.getElementById('modoMonitoreo');
+            modo.textContent = data.monitoreoTcpHabilitado ? 'MONITOREO TCP ACTIVO' : 'MONITOREO TCP DESHABILITADO';
+            modo.className = data.monitoreoTcpHabilitado ? 'badge text-bg-success' : 'badge text-bg-secondary';
+
+            const tbody = document.getElementById('tablaEquipos');
+            if (!data.equipos || data.equipos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No hay equipos de red activos registrados.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.equipos.map(e => `
+                <tr>
+                    <td><div class="fw-semibold">${escapeHtml(e.nombre)}</div><small class="text-muted">${escapeHtml(e.detalle || '')}</small></td>
+                    <td>${escapeHtml(e.sede || '')}</td>
+                    <td class="text-nowrap">${escapeHtml(e.ip)}:${e.puerto}</td>
+                    <td>${badgeConexion(e.estadoEquipo)}</td>
+                    <td>${e.latenciaMs == null ? '—' : e.latenciaMs + ' ms'}</td>
+                    <td>${badgeQos(e.estadoQos)}</td>
+                    <td><div>${escapeHtml(e.ultimaAccion || '')}</div><small class="text-muted">${fecha(e.ultimaOperacion)}</small></td>
+                </tr>`).join('');
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, c => ({
+                '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+            })[c]);
+        }
+
+        async function actualizar() {
+            const estado = document.getElementById('estadoActualizacion');
+            estado.textContent = 'Consultando...';
+            try {
+                const response = await fetch(endpoint, { headers: { 'Accept': 'application/json' } });
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                render(await response.json());
+                estado.textContent = 'Actualizado correctamente';
+            } catch (error) {
+                estado.textContent = 'No fue posible actualizar el monitoreo.';
+            }
+        }
+
+        document.getElementById('btnActualizar').addEventListener('click', actualizar);
+        window.setInterval(actualizar, 30000);
+    })();
+    </script>
+
+</th:block>
+</html>

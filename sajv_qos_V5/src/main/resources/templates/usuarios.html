@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/main :: layout('Gestión de Usuarios', ~{::contenido})}">
+<body>
+<div th:fragment="contenido">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <p class="text-muted mb-0">Administración de cuentas, perfiles y asignación de sedes del SAJV-QoS.</p>
+        <button class="btn btn-primary" type="button" onclick="nuevoUsuario()">
+            <i class="fa-solid fa-user-plus me-1"></i> Nuevo usuario
+        </button>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i><span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i><span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${claveTemporal}" class="alert alert-warning" role="alert">
+        <strong>Contraseña temporal para <span th:text="${usuarioRestablecido}"></span>:</strong>
+        <code th:text="${claveTemporal}"></code>
+        <p class="mb-0 small">Cópiela ahora y entréguela por un canal seguro. No se volverá a mostrar.</p>
+    </div>
+
+    <div class="card card-primary card-outline">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title"><i class="fa-solid fa-users me-2"></i>Listado de usuarios</h3>
+        </div>
+        <div class="card-body table-responsive">
+            <table id="tablaUsuarios" class="table table-bordered table-striped table-hover align-middle w-100">
+                <thead class="table-light"><tr>
+                    <th>ID</th><th>Nombre completo</th><th>Usuario</th><th>Correo</th>
+                    <th>Perfil</th><th>Sede asignada</th><th>Estado</th><th class="text-center">Acciones</th>
+                </tr></thead>
+                <tbody>
+                <tr th:each="u : ${usuarios}">
+                    <td th:text="${u.id}"></td>
+                    <td th:text="|${u.nombre} ${u.apellidos}|"></td>
+                    <td th:text="${u.usuario}"></td>
+                    <td th:text="${u.correo}"></td>
+                    <td>
+                        <span th:if="${u.rol == 1}" class="badge text-bg-primary">Administrador</span>
+                        <span th:if="${u.rol == 2}" class="badge text-bg-info">Operador</span>
+                        <span th:if="${u.rol == 3}" class="badge text-bg-secondary">Consulta</span>
+                    </td>
+                    <td th:text="${u.sede != null ? u.sede.descripcion : 'No asignada'}"></td>
+                    <td>
+                        <span th:if="${u.estado == 1}" class="badge text-bg-success">Activo</span>
+                        <span th:unless="${u.estado == 1}" class="badge text-bg-secondary">Inactivo</span>
+                    </td>
+                    <td class="text-center text-nowrap">
+                        <button type="button" class="btn btn-warning btn-sm"
+                                th:attr="data-id=${u.id},data-nombre=${u.nombre},data-apellidos=${u.apellidos},data-usuario=${u.usuario},data-correo=${u.correo},data-rol=${u.rol},data-sede=${u.sede != null ? u.sede.id : ''}"
+                                onclick="editarUsuario(this)" title="Editar">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <form th:action="@{/usuarios/{id}/restablecer-contrasena(id=${u.id})}" method="post" class="d-inline"
+                              onsubmit="return confirm('¿Restablecer la contraseña de este usuario? La contraseña anterior dejará de funcionar.');">
+                            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <button type="submit" class="btn btn-outline-primary btn-sm" title="Restablecer contraseña">
+                                <i class="fa-solid fa-key"></i>
+                            </button>
+                        </form>
+                        <form th:if="${u.estado == 1}" th:action="@{/usuarios/{id}/desactivar(id=${u.id})}" method="post" class="d-inline"
+                              onsubmit="return confirm('¿Desea desactivar este usuario? No podrá iniciar sesión.');">
+                            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <button class="btn btn-danger btn-sm" title="Desactivar"><i class="fa-solid fa-user-slash"></i></button>
+                        </form>
+                        <form th:unless="${u.estado == 1}" th:action="@{/usuarios/{id}/activar(id=${u.id})}" method="post" class="d-inline"
+                              onsubmit="return confirm('¿Desea activar este usuario?');">
+                            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <button class="btn btn-success btn-sm" title="Activar"><i class="fa-solid fa-user-check"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-user-pen me-2"></i><span id="tituloModalUsuario">Nuevo usuario</span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formUsuario" method="post" th:action="@{/usuarios/guardar}" th:object="${usuarioForm}">
+                <div class="modal-body">
+                    <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger">
+                        <ul class="mb-0">
+                            <li th:each="err : ${#fields.errors('*')}" th:text="${err}"></li>
+                        </ul>
+                    </div>
+                    <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label" for="nombre">Nombres *</label>
+                            <input class="form-control" id="nombre" th:field="*{nombre}" maxlength="80" required></div>
+                        <div class="col-md-6"><label class="form-label" for="apellidos">Apellidos *</label>
+                            <input class="form-control" id="apellidos" th:field="*{apellidos}" maxlength="100" required></div>
+                        <div class="col-md-6"><label class="form-label" for="usuario">Usuario *</label>
+                            <input class="form-control" id="usuario" th:field="*{usuario}" minlength="4" maxlength="20" autocomplete="off" required></div>
+                        <div class="col-md-6"><label class="form-label" for="correo">Correo electrónico *</label>
+                            <input type="email" class="form-control" id="correo" th:field="*{correo}" maxlength="50" required></div>
+                        <div class="col-md-6"><label class="form-label" for="rol">Perfil *</label>
+                            <select class="form-select" id="rol" th:field="*{rol}" required>
+                                <option value="">Seleccione un perfil</option><option value="1">Administrador</option>
+                                <option value="2">Operador</option><option value="3">Consulta</option>
+                            </select></div>
+                        <div class="col-md-6"><label class="form-label" for="sedeId">Sede</label>
+                            <select class="form-select" id="sedeId" th:field="*{sedeId}">
+                                <option value="">Sin sede asignada</option>
+                                <option th:each="s : ${sedes}" th:value="${s.id}" th:text="${s.descripcion}"></option>
+                            </select><small class="text-muted">Obligatoria para el perfil Operador.</small></div>
+                        <div class="col-md-12"><label class="form-label" for="contrasena">Contraseña <span id="marcaPassword">*</span></label>
+                            <input type="password" class="form-control" id="contrasena" th:field="*{contrasena}" minlength="8" maxlength="100" autocomplete="new-password">
+                            <small class="text-muted" id="ayudaPassword">Mínimo 8 caracteres.</small></div>
+                    </div>
+                    <div id="errorUsuario" class="alert alert-danger mt-3 d-none"></div>
+                    <div class="alert alert-info mt-3 mb-0 py-2"><i class="fa-solid fa-circle-info me-1"></i>
+                        Administrador y Consulta pueden quedar sin sede. Operador debe tener una sede activa asignada.
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar</button></div>
+            </form>
+        </div></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalUsuario'));
+            const form = document.getElementById('formUsuario');
+            const rol = document.getElementById('rol');
+            const sede = document.getElementById('sedeId');
+            const password = document.getElementById('contrasena');
+            const marcaPassword = document.getElementById('marcaPassword');
+            const ayudaPassword = document.getElementById('ayudaPassword');
+            const error = document.getElementById('errorUsuario');
+
+            function actualizarSede() {
+                const operador = rol.value === '2';
+                sede.required = operador;
+                sede.setCustomValidity(operador && !sede.value ? 'Seleccione una sede para el Operador.' : '');
+            }
+            rol.addEventListener('change', actualizarSede);
+            sede.addEventListener('change', actualizarSede);
+
+            window.nuevoUsuario = function () {
+                form.reset(); form.action = '/usuarios/guardar';
+                document.getElementById('tituloModalUsuario').textContent = 'Registrar usuario';
+                password.required = true; marcaPassword.textContent = '*';
+                ayudaPassword.textContent = 'Mínimo 8 caracteres.';
+                document.getElementById('usuario').readOnly = false;
+                error.classList.add('d-none'); actualizarSede(); modal.show();
+            };
+
+            window.editarUsuario = function (btn) {
+                const d = btn.dataset;
+                form.reset(); form.action = '/usuarios/editar/' + d.id;
+                document.getElementById('tituloModalUsuario').textContent = 'Editar usuario';
+                document.getElementById('nombre').value = d.nombre || '';
+                document.getElementById('apellidos').value = d.apellidos || '';
+                document.getElementById('usuario').value = d.usuario || '';
+                document.getElementById('correo').value = d.correo || '';
+                rol.value = d.rol || '';
+                sede.value = d.sede || '';
+                password.value = ''; password.required = false;
+                marcaPassword.textContent = '(opcional)';
+                ayudaPassword.textContent = 'Déjela vacía para conservar la contraseña actual. Si la cambia, use mínimo 8 caracteres.';
+                document.getElementById('usuario').readOnly = false;
+                error.classList.add('d-none'); actualizarSede(); modal.show();
+            };
+        });
+    </script>
+    <script th:if="${modoModal != null}">
+        document.addEventListener('DOMContentLoaded', function () {
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalUsuario')).show();
+        });
+    </script>
+</div>
+</body>
+</html>

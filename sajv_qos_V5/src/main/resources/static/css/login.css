@@ -1,0 +1,292 @@
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background: #0756bd;
+}
+
+.login-container {
+    display: grid;
+    grid-template-columns: 60% 40%;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+/* PANEL IZQUIERDO */
+
+.login-brand {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 7% 7% 4%;
+    color: white;
+
+    background-image:
+        linear-gradient(
+            90deg,
+            rgba(0, 30, 75, .68),
+            rgba(0, 45, 95, .20)
+        ),
+        url('/images/fondo01.png');
+
+    background-position: center;
+    background-size: cover;
+}
+
+.brand-content {
+    max-width: 650px;
+    position: relative;
+    z-index: 1;
+}
+
+.brand-content h1 {
+    font-size: clamp(38px, 4.5vw, 68px);
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.brand-content h2 {
+    font-size: clamp(24px, 2.8vw, 43px);
+    font-weight: 400;
+    line-height: 1.35;
+}
+
+.brand-line {
+    width: 125px;
+    height: 8px;
+    margin: 25px 0;
+    border-radius: 10px;
+    background: #0787ff;
+}
+
+.brand-content p {
+    font-size: clamp(19px, 2vw, 29px);
+    line-height: 1.4;
+}
+
+.brand-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+    position: relative;
+    z-index: 1;
+}
+
+.feature {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.feature i {
+    width: 58px;
+    height: 58px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid #0787ff;
+    border-radius: 50%;
+    color: white;
+    background: rgba(0, 120, 255, .25);
+    font-size: 23px;
+}
+
+/* PANEL DERECHO */
+
+.login-form-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 35px;
+    background:
+        linear-gradient(115deg, #0753b6, #0876ed);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 590px;
+    padding: 38px 35px 28px;
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, .22);
+}
+
+/* LOGOTIPO Y TÍTULOS */
+
+.login-logo {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.login-logo > i {
+    font-size: 66px;
+    color: #14213d;
+    margin-bottom: 12px;
+}
+
+.login-logo h2 {
+    font-size: 36px;
+    font-weight: 800;
+    color: #101e80;
+    margin-bottom: 12px;
+}
+
+.login-logo h3 {
+    font-size: 30px;
+    font-weight: 700;
+    color: #17263d;
+}
+
+.login-logo p {
+    font-size: 21px;
+    color: #748096;
+}
+
+/* CAMPOS */
+
+.input-group-custom {
+    height: 68px;
+    display: flex;
+    align-items: center;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    margin-bottom: 17px;
+    padding: 0 17px;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+.input-group-custom:focus-within {
+    border-color: #087bfa;
+    box-shadow: 0 0 0 3px rgba(8, 123, 250, .12);
+}
+
+.input-group-custom > i {
+    width: 43px;
+    font-size: 22px;
+    color: #334967;
+}
+
+.input-group-custom input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: none;
+    outline: none;
+    border-left: 1px solid #d5dce6;
+    padding-left: 17px;
+    font-size: 20px;
+    color: #24364d;
+    background: transparent;
+}
+
+.input-group-custom input::placeholder {
+    color: #8290a5;
+}
+
+.input-group-custom button {
+    border: none;
+    background: transparent;
+    color: #334967;
+    font-size: 20px;
+}
+
+/* BOTÓN */
+
+.btn-login {
+    width: 100%;
+    height: 72px;
+    margin-top: 2px;
+    border: none;
+    border-radius: 9px;
+    color: white;
+    background: #087bfa;
+    font-size: 23px;
+    transition: background .2s;
+}
+
+.btn-login:hover {
+    background: #0565d1;
+}
+
+.btn-login i {
+    margin-right: 12px;
+}
+
+/* PIE DEL FORMULARIO */
+
+.login-footer {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+    text-align: center;
+    color: #1b2d47;
+}
+
+.login-footer strong {
+    font-size: 21px;
+}
+
+.login-footer p {
+    margin: 8px 0 2px;
+    font-size: 18px;
+}
+
+.login-footer small {
+    color: #75839b;
+    font-size: 15px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+    .login-container {
+        grid-template-columns: 50% 50%;
+    }
+
+    .login-brand {
+        padding: 8% 6%;
+    }
+
+    .login-form-container {
+        padding: 20px;
+    }
+
+    .login-card {
+        padding: 30px 24px;
+    }
+
+    .brand-features {
+        gap: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .login-container {
+        display: block;
+    }
+
+    .login-brand {
+        display: none;
+    }
+
+    .login-form-container {
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .login-card {
+        max-width: 480px;
+    }
+}

@@ -1,0 +1,122 @@
+
+<aside xmlns:th="http://www.thymeleaf.org"
+       th:fragment="sidebar"
+       class="app-sidebar bg-dark shadow"
+       data-bs-theme="dark">
+
+    <div class="sidebar-brand">
+        <a th:href="@{/dashboard}" class="brand-link">
+            <span class="brand-text fw-light">
+                SAJV-QoS
+            </span>
+        </a>
+    </div>
+
+    <div class="sidebar-wrapper">
+        <nav class="mt-2">
+
+            <ul class="nav sidebar-menu flex-column"
+                data-lte-toggle="treeview"
+                role="menu"
+                data-accordion="false">
+
+                <!-- PRINCIPAL -->
+                <li class="nav-header">
+                    PRINCIPAL
+                </li>
+
+                <li class="nav-item">
+                    <a th:href="@{/dashboard}" class="nav-link">
+                        <i class="nav-icon fa-solid fa-house"></i>
+                        <p>Dashboard</p>
+                    </a>
+                </li>
+
+                <!-- GESTIÓN JUDICIAL -->
+                <li class="nav-header">
+                    GESTIÓN JUDICIAL
+                </li>
+
+                <li class="nav-item">
+                    <a th:href="@{/audiencias}" class="nav-link">
+                        <i class="nav-icon fa-solid fa-calendar-days"></i>
+                        <p>Audiencias</p>
+                    </a>
+                </li>
+
+                <!-- Salas: administración -->
+                <li class="nav-item"
+                    th:if="${esAdministrador}">
+
+                    <a th:href="@{/salas}" class="nav-link">
+                        <i class="nav-icon fa-solid fa-landmark"></i>
+                        <p>Salas judiciales</p>
+                    </a>
+
+                </li>
+
+                <!-- INFRAESTRUCTURA -->
+                <li class="nav-header">
+                    INFRAESTRUCTURA
+                </li>
+
+                <!-- Control QoS: administrador y operador -->
+                <li class="nav-item"
+                    th:if="${esAdministrador or esOperador}">
+
+                    <a th:href="@{/qos}" class="nav-link">
+                        <i class="nav-icon fa-solid fa-gauge-high"></i>
+                        <p>Control QoS</p>
+                    </a>
+
+                </li>
+
+                <!-- Monitoreo: todos los perfiles -->
+                <li class="nav-item">
+                    <a th:href="@{/monitoreo}" class="nav-link">
+                        <i class="nav-icon fa-solid fa-network-wired"></i>
+                        <p>Monitoreo de red</p>
+                    </a>
+                </li>
+
+                <!-- ADMINISTRACIÓN -->
+                <li class="nav-header"
+                    th:if="${esAdministrador}">
+                    ADMINISTRACIÓN
+                </li>
+
+                <li class="nav-item"
+                    th:if="${esAdministrador}">
+
+                    <a th:href="@{/usuarios}" class="nav-link">
+                        <i class="nav-icon fa-solid fa-users"></i>
+                        <p>Usuarios</p>
+                    </a>
+
+                </li>
+
+                <li class="nav-item"
+                    th:if="${esAdministrador}">
+
+                    <a th:href="@{/sedes}" class="nav-link">
+                        <i class="nav-icon fa-solid fa-building"></i>
+                        <p>Sedes</p>
+                    </a>
+
+                </li>
+
+                <li class="nav-item"
+                    th:if="${esAdministrador}">
+
+                    <a th:href="@{/auditoria}" class="nav-link">
+                        <i class="nav-icon fa-solid fa-book"></i>
+                        <p>Auditoría</p>
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </nav>
+    </div>
+</aside>

@@ -1,0 +1,109 @@
+
+<nav xmlns:th="http://www.thymeleaf.org"
+     th:fragment="navbar"
+     class="app-header navbar navbar-expand bg-body">
+
+    <div class="container-fluid">
+
+        <!-- Botón del sidebar -->
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <button class="nav-link border-0 bg-transparent"
+                        type="button"
+                        data-lte-toggle="sidebar"
+                        aria-label="Mostrar u ocultar menú"
+                        title="Mostrar u ocultar menú">
+
+                    <i class="fa-solid fa-bars"></i>
+
+                </button>
+            </li>
+        </ul>
+
+        <!-- Usuario autenticado -->
+        <ul class="navbar-nav ms-auto">
+
+            <li class="nav-item dropdown">
+
+                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2"
+                   href="#"
+                   role="button"
+                   data-bs-toggle="dropdown"
+                   aria-expanded="false">
+
+                    <i class="fa-solid fa-circle-user fs-5"></i>
+
+                    <span class="d-none d-sm-flex flex-column text-start">
+
+                        <strong class="small"
+                                th:text="${usuarioNombre}">
+                            Nombre del usuario
+                        </strong>
+
+                        <small class="text-muted"
+                               th:text="${usuarioRol}">
+                            Rol
+                        </small>
+
+                    </span>
+
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow">
+
+                    <!-- Información del usuario -->
+                    <li class="px-3 py-2">
+
+                        <div class="fw-semibold"
+                             th:text="${usuarioNombre}">
+                            Nombre del usuario
+                        </div>
+
+                        <small class="text-muted"
+                               th:text="${usuarioCorreo}">
+                            correo@institucion.gob.pe
+                        </small>
+
+                        <div class="mt-2">
+                            <span class="badge bg-primary"
+                                  th:text="${usuarioRol}">
+                                Administrador
+                            </span>
+                        </div>
+
+                    </li>
+
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item" th:href="@{/mi-contrasena}">
+                            <i class="fa-solid fa-key me-2"></i>
+                            Cambiar contraseña
+                        </a>
+                    </li>
+
+                    <!-- Cierre de sesión -->
+                    <li>
+                        <form th:action="@{/logout}" method="post">
+
+                            <button type="submit"
+                                    class="dropdown-item text-danger">
+
+                                <i class="fa-solid fa-right-from-bracket me-2"></i>
+                                Cerrar sesión
+
+                            </button>
+
+                        </form>
+                    </li>
+
+                </ul>
+
+            </li>
+
+        </ul>
+
+    </div>
+</nav>

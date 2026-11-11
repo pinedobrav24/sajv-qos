@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      th:fragment="layout(titulo, contenido)">
+
+<head th:replace="~{fragments/head :: head(${titulo})}">
+</head>
+
+<body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+
+<div class="app-wrapper">
+
+    <!-- Navbar -->
+    <th:block th:replace="~{fragments/navbar :: navbar}">
+    </th:block>
+
+    <!-- Sidebar -->
+    <th:block th:replace="~{fragments/sidebar :: sidebar}">
+    </th:block>
+
+    <!-- Contenido principal -->
+    <main class="app-main">
+
+        <div class="app-content-header">
+            <div class="container-fluid">
+                <h3 class="mb-0" th:text="${titulo}">
+                    Dashboard
+                </h3>
+            </div>
+        </div>
+
+        <div class="app-content">
+            <div class="container-fluid">
+
+                <th:block th:replace="${contenido}">
+                </th:block>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <th:block th:replace="~{fragments/footer :: footer}">
+    </th:block>
+
+</div>
+
+<!-- jQuery -->
+<script th:src="@{/vendor/jquery/jquery-3.7.1.js}"></script>
+
+<!-- Bootstrap -->
+<script th:src="@{/vendor/Bootstrap/js/bootstrap.bundle.min.js}"></script>
+
+<!-- AdminLTE -->
+<script th:src="@{/AdminLTE/dist/js/adminlte.min.js}"></script>
+
+<!-- DataTables -->
+<script th:src="@{/vendor/Datatables/js/datatables.min.js}"></script>
+
+<!-- Inicializacion de tablas -->
+<script th:src="@{/js/datatables-init.js}"></script>
+
+<!-- FullCalendar CORE -->
+<script th:src="@{/vendor/fullcalendar/index.global.min.js}"></script>
+
+<!-- Plugins FullCalendar -->
+<script th:src="@{/vendor/fullcalendar/daygrid/index.global.min.js}"></script>
+
+<script th:src="@{/vendor/fullcalendar/timegrid/index.global.min.js}"></script>
+
+<script th:src="@{/vendor/fullcalendar/interaction/index.global.min.js}"></script>
+
+<!-- Idioma Español -->
+<script th:src="@{/vendor/fullCalendar/locales/es.global.min.js}"></script>
+
+</body>
+</html>

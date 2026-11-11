@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SAJV-QoS | Cambiar contraseña</title>
+    <link rel="stylesheet" th:href="@{/vendor/Bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/vendor/fontawesome/css/all.min.css}">
+</head>
+<body class="bg-light">
+<main class="container py-5" style="max-width:540px">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white"><h5 class="mb-0"><i class="fa-solid fa-key me-2"></i>Cambiar contraseña</h5></div>
+        <div class="card-body p-4">
+            <div th:if="${cambioObligatorio}" class="alert alert-warning">
+                Debe establecer una contraseña nueva antes de continuar utilizando el sistema.
+            </div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <form th:action="@{/mi-contrasena}" method="post">
+                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <div class="mb-3"><label for="actual" class="form-label">Contraseña actual o temporal</label>
+                    <input id="actual" type="password" name="contrasenaActual" class="form-control" autocomplete="current-password" required></div>
+                <div class="mb-3"><label for="nueva" class="form-label">Nueva contraseña</label>
+                    <input id="nueva" type="password" name="nuevaContrasena" class="form-control" minlength="10" maxlength="100" autocomplete="new-password" required>
+                    <div class="form-text">Entre 10 y 100 caracteres. No puede ser igual a la anterior.</div></div>
+                <div class="mb-3"><label for="confirmar" class="form-label">Confirmar nueva contraseña</label>
+                    <input id="confirmar" type="password" name="confirmarContrasena" class="form-control" minlength="10" maxlength="100" autocomplete="new-password" required></div>
+                <button type="submit" class="btn btn-primary w-100">Guardar nueva contraseña</button>
+            </form>
+            <div class="d-flex justify-content-between mt-3">
+                <a th:if="${!cambioObligatorio}" th:href="@{/dashboard}">Volver al Dashboard</a>
+                <form th:action="@{/logout}" method="post">
+                    <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="btn btn-link p-0">Cerrar sesión</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+</body></html>

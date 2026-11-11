@@ -1,0 +1,954 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/main :: layout('Dashboard', ~{::contenido})}">
+
+<th:block th:fragment="contenido">
+
+    <!-- ==============================================
+         INDICADORES PRINCIPALES
+    =============================================== -->
+
+    <div class="row g-3">
+
+        <!-- Audiencias de hoy -->
+        <div class="col-xl-3 col-md-6">
+            <div class="small-box text-bg-primary">
+                <div class="inner">
+                    <h3 id="kpiAudienciasHoy"
+                        th:text="${resumen.audienciasHoy}">0</h3>
+                    <p>Audiencias de hoy</p>
+                </div>
+
+                <div class="small-box-icon">
+                    <i class="fa-solid fa-calendar-day"></i>
+                </div>
+
+                <a th:href="@{/audiencias}"
+                   class="small-box-footer link-light link-underline-opacity-0">
+                    Ver audiencias
+                    <i class="fa-solid fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Audiencias en curso -->
+        <div class="col-xl-3 col-md-6">
+            <div class="small-box text-bg-success">
+                <div class="inner">
+                    <h3 id="kpiAudienciasEnCurso"
+                        th:text="${resumen.audienciasEnCurso}">0</h3>
+                    <p>Audiencias en curso</p>
+                </div>
+
+                <div class="small-box-icon">
+                    <i class="fa-solid fa-video"></i>
+                </div>
+
+                <a th:href="@{/audiencias}"
+                   class="small-box-footer link-light link-underline-opacity-0">
+                    Consultar agenda
+                    <i class="fa-solid fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Equipos activos -->
+        <div class="col-xl-3 col-md-6">
+            <div class="small-box text-bg-info">
+                <div class="inner">
+                    <h3 id="kpiEquiposActivos"
+                        th:text="${resumen.equiposActivos}">0</h3>
+                    <p>Equipos de red activos</p>
+                </div>
+
+                <div class="small-box-icon">
+                    <i class="fa-solid fa-network-wired"></i>
+                </div>
+
+                <a th:href="@{/monitoreo}"
+                   class="small-box-footer link-dark link-underline-opacity-0">
+                    Ir a monitoreo
+                    <i class="fa-solid fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Operaciones exitosas -->
+        <div class="col-xl-3 col-md-6">
+            <div class="small-box text-bg-warning">
+                <div class="inner">
+                    <h3 id="kpiOperacionesExitosas"
+                        th:text="${resumen.operacionesExitosasHoy}">0</h3>
+                    <p>Operaciones QoS exitosas hoy</p>
+                </div>
+
+                <div class="small-box-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+
+                <a th:href="@{/qos}"
+                   class="small-box-footer link-dark link-underline-opacity-0">
+                    Consultar operaciones
+                    <i class="fa-solid fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ==============================================
+         RESUMEN GENERAL
+    =============================================== -->
+
+    <div class="row g-3 mb-3">
+
+        <div class="col-12">
+
+            <div class="card">
+
+                <div class="card-header">
+
+                    <h3 class="card-title">
+                        <i class="fa-solid fa-chart-pie me-2"></i>
+                        Resumen general
+                    </h3>
+
+                    <div class="card-tools text-muted small">
+
+                        <i class="fa-regular fa-clock me-1"></i>
+
+                        <span id="fechaDashboard"
+                              th:text="${#temporals.format(resumen.fechaActual, 'dd/MM/yyyy')}">
+                            08/11/2026
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row text-center">
+
+                        <div class="col-6 col-md-3 border-end mb-3 mb-md-0">
+
+                            <div class="text-muted small">
+                                Sedes activas
+                            </div>
+
+                            <div id="kpiSedesActivas"
+                                 class="fs-3 fw-semibold"
+                                 th:text="${resumen.sedesActivas}">
+                                0
+                            </div>
+
+                        </div>
+
+                        <div class="col-6 col-md-3 border-end mb-3 mb-md-0">
+
+                            <div class="text-muted small">
+                                Salas judiciales
+                            </div>
+
+                            <div id="kpiSalasActivas"
+                                 class="fs-3 fw-semibold"
+                                 th:text="${resumen.salasActivas}">
+                                0
+                            </div>
+
+                        </div>
+
+                        <div class="col-6 col-md-3 border-end">
+
+                            <div class="text-muted small">
+                                Políticas QoS activas en catálogo
+                            </div>
+
+                            <div id="kpiPoliticasActivas"
+                                 class="fs-3 fw-semibold"
+                                 th:text="${resumen.politicasActivas}">
+                                0
+                            </div>
+
+                        </div>
+
+                        <div class="col-6 col-md-3">
+
+                            <div class="text-muted small">
+                                Audiencias programadas
+                            </div>
+
+                            <div id="kpiAudienciasProgramadas"
+                                 class="fs-3 fw-semibold"
+                                 th:text="${resumen.audienciasProgramadas}">
+                                0
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==============================================
+         PRÓXIMAS AUDIENCIAS Y OPERACIONES QOS
+    =============================================== -->
+
+    <div class="row g-3">
+
+        <!-- PRÓXIMAS AUDIENCIAS -->
+
+        <div class="col-xl-7">
+
+            <div class="card h-100">
+
+                <div class="card-header">
+
+                    <h3 class="card-title">
+                        <i class="fa-solid fa-calendar-days me-2"></i>
+                        Próximas audiencias
+                    </h3>
+
+                    <div class="card-tools">
+
+                        <a th:href="@{/audiencias}"
+                           class="btn btn-sm btn-outline-primary">
+                            Ver agenda
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body p-0">
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover align-middle mb-0">
+
+                            <thead class="table-light">
+
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Horario</th>
+                                    <th>Sala / Sede</th>
+                                    <th>Responsable</th>
+                                    <th>Situación</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="tablaProximasAudiencias">
+
+                                <tr th:each="audiencia : ${resumen.proximasAudiencias}">
+
+                                    <td class="text-nowrap"
+                                        th:text="${#temporals.format(audiencia.fecha, 'dd/MM/yyyy')}">
+                                        08/11/2026
+                                    </td>
+
+                                    <td class="text-nowrap">
+
+                                        <span th:text="${#temporals.format(audiencia.horaInicio, 'HH:mm')}">
+                                            09:00
+                                        </span>
+
+                                        <span class="text-muted"> - </span>
+
+                                        <span th:text="${#temporals.format(audiencia.horaFin, 'HH:mm')}">
+                                            10:00
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <div class="fw-semibold"
+                                             th:text="${audiencia.sala.descripcion}">
+                                            Sala
+                                        </div>
+
+                                        <small class="text-muted"
+                                               th:text="${audiencia.sala.sede.descripcion}">
+                                            Sede
+                                        </small>
+
+                                    </td>
+
+                                    <td th:text="${audiencia.responsable}">
+                                        Responsable
+                                    </td>
+
+                                    <td>
+
+                                        <span th:if="${audiencia.situacion == 1}"
+                                              class="badge text-bg-primary">
+                                            Programada
+                                        </span>
+
+                                        <span th:if="${audiencia.situacion == 2}"
+                                              class="badge text-bg-success">
+                                            En curso
+                                        </span>
+
+                                        <span th:if="${audiencia.situacion == 3}"
+                                              class="badge text-bg-secondary">
+                                            Finalizada
+                                        </span>
+
+                                        <span th:if="${audiencia.situacion == 4}"
+                                              class="badge text-bg-danger">
+                                            Cancelada
+                                        </span>
+
+                                        <span th:if="${audiencia.situacion == 5}"
+                                              class="badge text-bg-warning">
+                                            Suspendida
+                                        </span>
+
+                                    </td>
+
+                                </tr>
+
+                                <tr th:if="${#lists.isEmpty(resumen.proximasAudiencias)}">
+
+                                    <td colspan="5"
+                                        class="text-center text-muted py-4">
+
+                                        <i class="fa-regular fa-calendar-xmark fs-4 d-block mb-2"></i>
+
+                                        No hay audiencias próximas registradas.
+
+                                    </td>
+
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- OPERACIONES QOS RECIENTES -->
+
+        <div class="col-xl-5">
+
+            <div class="card h-100">
+
+                <div class="card-header">
+
+                    <h3 class="card-title">
+                        <i class="fa-solid fa-clock-rotate-left me-2"></i>
+                        Operaciones QoS recientes
+                    </h3>
+
+                    <div class="card-tools">
+
+                        <a th:href="@{/qos}"
+                           class="btn btn-sm btn-outline-primary">
+                            Ver detalle
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body p-0">
+
+                    <ul id="listaOperacionesRecientes"
+                        class="list-group list-group-flush">
+
+                        <li class="list-group-item"
+                            th:each="op : ${resumen.operacionesRecientes}">
+
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+
+                                <div>
+
+                                    <div class="fw-semibold"
+                                         th:text="${op.accion == 1 ? 'Activación QoS' : (op.accion == 2 ? 'Desactivación QoS' : 'Operación QoS')}">
+                                        Activación QoS
+                                    </div>
+
+                                    <small class="text-muted d-block"
+                                           th:text="${op.equipoNombre + ' · ' + op.politicaNombre}">
+                                        Router · Política
+                                    </small>
+
+                                    <small class="text-muted"
+                                           th:if="${op.fechaInicio != null}"
+                                           th:text="${#temporals.format(op.fechaInicio, 'dd/MM/yyyy HH:mm')}">
+                                        08/11/2026 09:00
+                                    </small>
+
+                                </div>
+
+                                <span th:if="${op.resultado == 1}"
+                                      class="badge text-bg-success">
+                                    Exitosa
+                                </span>
+
+                                <span th:if="${op.resultado == 2}"
+                                      class="badge text-bg-danger">
+                                    Fallida
+                                </span>
+
+                                <span th:if="${op.resultado == 3}"
+                                      class="badge text-bg-warning">
+                                    Pendiente
+                                </span>
+
+                            </div>
+
+                        </li>
+
+                        <li class="list-group-item text-center text-muted py-4"
+                            th:if="${#lists.isEmpty(resumen.operacionesRecientes)}">
+
+                            <i class="fa-solid fa-list-check fs-4 d-block mb-2"></i>
+
+                            Aún no hay operaciones registradas.
+
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==============================================
+         INFORMACIÓN Y ACTUALIZACIÓN
+    =============================================== -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mt-3 gap-2">
+
+        <div class="alert alert-light border mb-0 flex-grow-1"
+             role="status">
+
+            <i class="fa-solid fa-circle-info text-primary me-2"></i>
+
+            El Dashboard presenta indicadores generales.
+            Para consultar conectividad de routers y estado operativo
+            detallado de QoS, ingrese a
+
+            <a th:href="@{/monitoreo}" class="alert-link">
+                Monitoreo de red
+            </a>.
+
+        </div>
+
+        <div class="text-muted small text-nowrap">
+
+            <i class="fa-solid fa-rotate me-1"></i>
+
+            <span id="estadoActualizacion">
+                Actualización automática cada 30 segundos
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==============================================
+         JAVASCRIPT - ACTUALIZACIÓN AUTOMÁTICA
+    =============================================== -->
+
+    <script th:inline="javascript">
+
+        (function () {
+
+            // Evitar inicialización duplicada.
+            if (window.sajvDashboardInit) {
+                return;
+            }
+
+            window.sajvDashboardInit = true;
+
+            const INTERVALO = 30000;
+
+            const ENDPOINT = '/api/dashboard/resumen';
+
+            let actualizando = false;
+
+
+            // ==========================================
+            // UTILIDADES
+            // ==========================================
+
+            function actualizarTexto(id, valor) {
+
+                const elemento = document.getElementById(id);
+
+                if (elemento && valor !== null && valor !== undefined) {
+                    elemento.textContent = valor;
+                }
+            }
+
+
+            function escaparHTML(valor) {
+
+                return String(valor ?? '').replace(/[&<>"']/g, function (caracter) {
+
+                    const caracteres = {
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#039;'
+                    };
+
+                    return caracteres[caracter];
+
+                });
+            }
+
+
+            function formatearFecha(fecha) {
+
+                if (!fecha) return '-';
+
+                const partes = String(fecha).split('-');
+
+                if (partes.length !== 3) return fecha;
+
+                return `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+            }
+
+
+            function formatearHora(hora) {
+
+                if (!hora) return '-';
+
+                // Acepta LocalTime serializado como texto o como arreglo.
+                if (Array.isArray(hora)) {
+
+                    const hh = String(hora[0] ?? 0).padStart(2, '0');
+                    const mm = String(hora[1] ?? 0).padStart(2, '0');
+
+                    return `${hh}:${mm}`;
+                }
+
+                return String(hora).substring(0, 5);
+
+            }
+
+
+            function obtenerSituacion(situacion) {
+
+                const estados = {
+                    1: {
+                        texto: 'Programada',
+                        clase: 'text-bg-primary'
+                    },
+                    2: {
+                        texto: 'En curso',
+                        clase: 'text-bg-success'
+                    },
+                    3: {
+                        texto: 'Finalizada',
+                        clase: 'text-bg-secondary'
+                    },
+                    4: {
+                        texto: 'Cancelada',
+                        clase: 'text-bg-danger'
+                    },
+                    5: {
+                        texto: 'Suspendida',
+                        clase: 'text-bg-warning'
+                    }
+                };
+
+                return estados[Number(situacion)] || {
+                    texto: 'Sin situación',
+                    clase: 'text-bg-light'
+                };
+
+            }
+
+
+            function formatearFechaHora(fechaHora) {
+
+                if (!fechaHora) return '-';
+
+                return String(fechaHora)
+                    .replace('T', ' ')
+                    .substring(0, 16)
+                    .replace(
+                        /^(\d{4})-(\d{2})-(\d{2})/,
+                        '$3/$2/$1'
+                    );
+
+            }
+
+
+            // ==========================================
+            // ACTUALIZAR INDICADORES
+            // ==========================================
+
+            function actualizarIndicadores(datos) {
+
+                actualizarTexto(
+                    'kpiAudienciasHoy',
+                    datos.audienciasHoy
+                );
+
+                actualizarTexto(
+                    'kpiAudienciasEnCurso',
+                    datos.audienciasEnCurso
+                );
+
+                actualizarTexto(
+                    'kpiEquiposActivos',
+                    datos.equiposActivos
+                );
+
+                actualizarTexto(
+                    'kpiOperacionesExitosas',
+                    datos.operacionesExitosasHoy
+                );
+
+                actualizarTexto(
+                    'kpiSedesActivas',
+                    datos.sedesActivas
+                );
+
+                actualizarTexto(
+                    'kpiSalasActivas',
+                    datos.salasActivas
+                );
+
+                actualizarTexto(
+                    'kpiPoliticasActivas',
+                    datos.politicasActivas
+                );
+
+                actualizarTexto(
+                    'kpiAudienciasProgramadas',
+                    datos.audienciasProgramadas
+                );
+
+                actualizarTexto(
+                    'fechaDashboard',
+                    formatearFecha(datos.fechaActual)
+                );
+
+            }
+
+
+            // ==========================================
+            // ACTUALIZAR TABLA DE AUDIENCIAS
+            // ==========================================
+
+            function actualizarAudiencias(audiencias) {
+
+                const tbody = document.getElementById(
+                    'tablaProximasAudiencias'
+                );
+
+                if (!tbody) return;
+
+                if (!Array.isArray(audiencias) || audiencias.length === 0) {
+
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                <i class="fa-regular fa-calendar-xmark fs-4 d-block mb-2"></i>
+                                No hay audiencias próximas registradas.
+                            </td>
+                        </tr>
+                    `;
+
+                    return;
+                }
+
+                tbody.innerHTML = audiencias.map(function (audiencia) {
+
+                    const situacion = obtenerSituacion(audiencia.situacion);
+
+                    return `
+                        <tr>
+
+                            <td class="text-nowrap">
+                                ${escaparHTML(formatearFecha(audiencia.fecha))}
+                            </td>
+
+                            <td class="text-nowrap">
+                                ${escaparHTML(formatearHora(audiencia.horaInicio))}
+                                <span class="text-muted"> - </span>
+                                ${escaparHTML(formatearHora(audiencia.horaFin))}
+                            </td>
+
+                            <td>
+                                <div class="fw-semibold">
+                                    ${escaparHTML(audiencia.salaNombre)}
+                                </div>
+
+                                <small class="text-muted">
+                                    ${escaparHTML(audiencia.sedeNombre)}
+                                </small>
+                            </td>
+
+                            <td>
+                                ${escaparHTML(audiencia.responsable)}
+                            </td>
+
+                            <td>
+                                <span class="badge ${situacion.clase}">
+                                    ${situacion.texto}
+                                </span>
+                            </td>
+
+                        </tr>
+                    `;
+
+                }).join('');
+
+            }
+
+
+            // ==========================================
+            // ACTUALIZAR OPERACIONES QOS
+            // ==========================================
+
+            function actualizarOperaciones(operaciones) {
+
+                const lista = document.getElementById(
+                    'listaOperacionesRecientes'
+                );
+
+                if (!lista) return;
+
+                if (!Array.isArray(operaciones) || operaciones.length === 0) {
+
+                    lista.innerHTML = `
+                        <li class="list-group-item text-center text-muted py-4">
+                            <i class="fa-solid fa-list-check fs-4 d-block mb-2"></i>
+                            Aún no hay operaciones registradas.
+                        </li>
+                    `;
+
+                    return;
+                }
+
+                lista.innerHTML = operaciones.map(function (op) {
+
+                    const accion = Number(op.accion);
+
+                    const resultado = Number(op.resultado);
+
+                    const nombreAccion =
+                        accion === 1 ? 'Activación QoS' :
+                        accion === 2 ? 'Desactivación QoS' :
+                        'Operación QoS';
+
+                    const estados = {
+                        1: {
+                            texto: 'Exitosa',
+                            clase: 'text-bg-success'
+                        },
+                        2: {
+                            texto: 'Fallida',
+                            clase: 'text-bg-danger'
+                        },
+                        3: {
+                            texto: 'Pendiente',
+                            clase: 'text-bg-warning'
+                        }
+                    };
+
+                    const estado = estados[resultado] || {
+                        texto: 'Desconocida',
+                        clase: 'text-bg-secondary'
+                    };
+
+                    return `
+                        <li class="list-group-item">
+
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+
+                                <div>
+
+                                    <div class="fw-semibold">
+                                        ${nombreAccion}
+                                    </div>
+
+                                    <small class="text-muted d-block">
+                                        ${escaparHTML(op.equipoNombre)}
+                                        ·
+                                        ${escaparHTML(op.politicaNombre)}
+                                    </small>
+
+                                    <small class="text-muted">
+                                        ${escaparHTML(formatearFechaHora(op.fechaInicio))}
+                                    </small>
+
+                                </div>
+
+                                <span class="badge ${estado.clase}">
+                                    ${estado.texto}
+                                </span>
+
+                            </div>
+
+                        </li>
+                    `;
+
+                }).join('');
+
+            }
+
+
+            // ==========================================
+            // CONSULTAR ENDPOINT
+            // ==========================================
+
+            async function actualizarDashboard() {
+
+                if (actualizando || document.hidden) {
+                    return;
+                }
+
+                actualizando = true;
+
+                const indicador = document.getElementById(
+                    'estadoActualizacion'
+                );
+
+                try {
+
+                    if (indicador) {
+                        indicador.innerHTML =
+                            '<i class="fa-solid fa-spinner fa-spin me-1"></i> Actualizando...';
+                    }
+
+                    const respuesta = await fetch(ENDPOINT, {
+
+                        method: 'GET',
+
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+
+                        cache: 'no-store'
+
+                    });
+
+                    if (!respuesta.ok) {
+                        throw new Error(
+                            'Error HTTP ' + respuesta.status
+                        );
+                    }
+
+                    const datos = await respuesta.json();
+
+                    actualizarIndicadores(datos);
+
+                    actualizarAudiencias(
+                        datos.proximasAudiencias
+                    );
+
+                    actualizarOperaciones(
+                        datos.operacionesRecientes
+                    );
+
+                    if (indicador) {
+
+                        const ahora = new Date();
+
+                        indicador.textContent =
+                            'Actualizado: ' +
+                            ahora.toLocaleTimeString('es-PE', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                            });
+
+                    }
+
+                } catch (error) {
+
+                    console.error(
+                        'Error actualizando Dashboard:',
+                        error
+                    );
+
+                    if (indicador) {
+
+                        indicador.innerHTML =
+                            '<i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> No se pudo actualizar';
+
+                    }
+
+                } finally {
+
+                    actualizando = false;
+
+                }
+
+            }
+
+
+            // ==========================================
+            // INICIALIZACIÓN
+            // ==========================================
+
+            document.addEventListener(
+                'DOMContentLoaded',
+                function () {
+
+                    // Primera actualización.
+                    actualizarDashboard();
+
+                    // Actualización periódica.
+                    window.sajvDashboardInterval = setInterval(
+                        actualizarDashboard,
+                        INTERVALO
+                    );
+
+                }
+            );
+
+            // Al regresar a la pestaña, consultar nuevamente.
+            document.addEventListener(
+                'visibilitychange',
+                function () {
+
+                    if (!document.hidden) {
+                        actualizarDashboard();
+                    }
+
+                }
+            );
+
+        })();
+
+    </script>
+
+</th:block>
+
+</html>
